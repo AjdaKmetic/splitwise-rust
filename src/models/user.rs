@@ -8,16 +8,20 @@ pub struct User {
 }
 
 impl User {
-    pub fn new(id: UserId, name: impl Into<String>, email: impl Into<String>) -> Self {
-        Self { id, name: name.into(), email: email.into() }
+    pub fn new(id: UserId, name: &str, email: &str) -> Self {
+        Self { 
+            id, 
+            name: name.to_string(), 
+            email: email.to_string() 
+        }
     }
 
-    pub fn update_name(&mut self, new_name: impl Into<String>) {
-        self.name = new_name.into();
+    pub fn update_name(&mut self, new_name: &str) {
+        self.name = new_name.to_string();
     }
 
-    pub fn update_email(&mut self, new_email: impl Into<String>) {
-        self.email = new_email.into();
+    pub fn update_email(&mut self, new_email: &str) {
+        self.email = new_email.to_string();
     }
 }
 

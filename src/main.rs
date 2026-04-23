@@ -1,8 +1,8 @@
 use settlemate_rust::{
-    expense::Expense,
-    group::Group,
-    split::Split,
-    user::{User, UserId},
+    models::expense::Expense,
+    models::group::Group,
+    services::split::Split,
+    models::user::{User, UserId},
 };
 
 fn main() {

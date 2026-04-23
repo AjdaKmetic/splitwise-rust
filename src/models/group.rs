@@ -1,5 +1,5 @@
-use crate::user::User;
-use crate::user::UserId;
+use crate::models::user::User;
+use crate::models::user::UserId;
 
 pub type GroupId = u32;
 
@@ -11,13 +11,15 @@ pub struct Group {
 }
 
 impl Group {
-    pub fn new(id: GroupId, name: impl Into<String>) -> Self {
+    pub fn new(id: GroupId, name: &str) -> Self {
         Self {
             id,
-            name: name.into(),
+            name: name.to_string(),
             members: Vec::new(),
         }
     }
+
+// v vektor članov skupine bi shranila vse podatke o uporabniku
 
     pub fn add_member(&mut self, user_id: UserId) {
         if !self.contains_member(user_id) {

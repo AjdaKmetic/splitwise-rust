@@ -1,4 +1,6 @@
-use crate::{split::Split, user::UserId, group::GroupId};
+use crate::{services::split::Split, models::user::UserId, models::group::GroupId};
+
+pub type ExpenseId = u64;
 
 #[derive(Debug, Clone)]
 pub struct Expense {
@@ -9,8 +11,6 @@ pub struct Expense {
     pub group_id: GroupId,
     pub splits: Split,
 }
-
-pub type ExpenseId = u64;
 
 impl Expense {
     pub fn new(id: ExpenseId, description: String, amount: f64, paid_by: UserId, group_id: GroupId, splits: Split) -> Self {
