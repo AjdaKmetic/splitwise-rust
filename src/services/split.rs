@@ -1,4 +1,4 @@
-use crate::user::UserId;
+use crate::models::user::UserId;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Split {
