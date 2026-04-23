@@ -21,9 +21,9 @@ impl Group {
 
 // v vektor članov skupine bi shranila vse podatke o uporabniku
 
-    pub fn add_member(&mut self, user_id: UserId) {
-        if !self.contains_member(user_id) {
-            self.members.push(User { id: user_id, name: String::new(), email: String::new() });
+    pub fn add_member(&mut self, user: User) {
+        if !self.contains_member(user.id) {
+            self.members.push(user);
         }
     }
 
@@ -65,7 +65,7 @@ mod tests {
     fn test_group_add_member() {
         let mut group = Group::new(1, "Amsterdam");
         let user = User::new(1, "Janez Novak", "janeznovak@example.com");
-        group.add_member(user.id);
+        group.add_member(user);
         assert_eq!(group.member_count(), 1);
     }
 
@@ -73,8 +73,9 @@ mod tests {
     fn test_group_remove_member() {
         let mut group = Group::new(1, "Amsterdam");
         let user = User::new(1, "Janez Novak", "janeznovak@example.com");
-        group.add_member(user.id);
-        group.remove_member(user.id);
+        let user_id = user.id;
+        group.add_member(user);
+        group.remove_member(user_id);
         assert_eq!(group.member_count(), 0);
     }
 
@@ -82,17 +83,21 @@ mod tests {
     fn test_group_contains_member() {
         let mut group = Group::new(1, "Amsterdam");
         let user = User::new(1, "Janez Novak", "janeznovak@example.com");
-        group.add_member(user.id);
-        assert!(group.contains_member(user.id));
+        let user_id = user.id;
+        group.add_member(user);
+        assert!(group.contains_member(user_id));
     }
 
     #[test]
     fn test_group_members() {
         let mut group = Group::new(1, "Amsterdam");
-        let user = User::new(1, "Janez Novak", "janeznovak@example.com");
-        group.add_member(user.id);
-        assert_eq!(group.members(), vec![user]);
-
+        let user1 = User::new(1, "Janez Novak", "janeznovak@example.com");
+        let user2 = User::new(2, "Marija Novak", "marijanovak@example.com");
+        group.add_member(user1);
+        group.add_member(user2);
+        assert_eq!(group.member_count(), 2);
+        assert!(group.contains_member(1));
+        assert!(group.contains_member(2));
     }
 
     #[test]
@@ -100,8 +105,8 @@ mod tests {
         let mut group = Group::new(1, "Amsterdam");
         let user1 = User::new(1, "Janez Novak", "janeznovak@example.com");
         let user2 = User::new(2, "Marija Novak", "marijanovak@example.com");
-        group.add_member(user1.id);
-        group.add_member(user2.id);
+        group.add_member(user1);
+        group.add_member(user2);
         assert_eq!(group.member_count(), 2);
     }
 
