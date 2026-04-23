@@ -1,4 +1,3 @@
-use crate::expense::Expense;
 use crate::user::User;
 use crate::user::UserId;
 
@@ -9,7 +8,6 @@ pub struct Group {
     pub id: GroupId,
     pub name: String,
     pub members: Vec<User>,
-    pub expenses: Vec<Expense>,
 }
 
 impl Group {
@@ -18,7 +16,6 @@ impl Group {
             id,
             name,
             members: Vec::new(),
-            expenses: Vec::new(),
         }
     }
 
@@ -45,10 +42,69 @@ impl Group {
     pub fn is_empty(&self) -> bool {
         self.members.is_empty()
     }
-    
-    pub fn add_expense(&mut self, expense: Expense) {
-        self.expenses.push(expense);
-    }
 
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_group_new() {
+        let group = Group::new(1, "Amsterdam".into());
+        assert_eq!(group.id, 1);
+        assert_eq!(group.name, "Amsterdam");
+        assert!(group.members.is_empty());
+    }
+
+    #[test]
+    fn test_group_add_member() {
+        let mut group = Group::new(1, "Amsterdam".into());
+        let user = User::new(1, "Janez Novak".into(), "janeznovak@example.com".into());
+        group.add_member(user);
+        assert_eq!(group.member_count(), 1);
+    }
+
+    #[test]
+    fn test_group_remove_member() {
+        let mut group = Group::new(1, "Amsterdam".into());
+        let user = User::new(1, "Janez Novak".into(), "janeznovak@example.com".into());
+        group.add_member(user);
+        group.remove_member(1);
+        assert_eq!(group.member_count(), 0);
+    }
+
+    #[test]
+    fn test_group_contains_member() {
+        let mut group = Group::new(1, "Amsterdam".into());
+        let user = User::new(1, "Janez Novak".into(), "janeznovak@example.com".into());
+        group.add_member(user);
+        assert!(group.contains_member(1));
+    }
+
+    #[test]
+    fn test_group_members() {
+        let mut group = Group::new(1, "Amsterdam".into());
+        let user = User::new(1, "Janez Novak".into(), "janeznovak@example.com".into());
+        group.add_member(user.clone());
+        assert_eq!(group.members(), vec![user]);
+
+    }
+
+    #[test]
+    fn test_group_member_count() {
+        let mut group = Group::new(1, "Amsterdam".into());
+        let user1 = User::new(1, "Janez Novak".into(), "janeznovak@example.com".into());
+        let user2 = User::new(2, "Marija Novak".into(), "marijanovak@example.com".into());
+        group.add_member(user1);
+        group.add_member(user2);
+        assert_eq!(group.member_count(), 2);
+    }
+
+    #[test]
+    fn test_group_is_empty() {
+        let group = Group::new(1, "Amsterdam".into());
+        assert!(group.is_empty());
+    }
+
+}
