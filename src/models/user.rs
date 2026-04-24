@@ -25,11 +25,11 @@ impl User {
     }
 
     pub fn update_name(&mut self, new_name: &str) {
-        self.name = new_name.to_string();
+        self.name = new_name.to_string()
     }
 
     pub fn update_email(&mut self, new_email: &str) {
-        self.email = new_email.to_string();
+        self.email = new_email.to_string()
     }
 }
 

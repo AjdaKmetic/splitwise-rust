@@ -29,17 +29,17 @@ impl Group {
     }
 
     pub fn update_name(&mut self, new_name: &str) {
-        self.name = new_name.to_string();
+        self.name = new_name.to_string()
     }
 
     pub fn add_member(&mut self, user_id: UserId) {
         if !self.contains_member(user_id) {
-            self.members.push(user_id);
+            self.members.push(user_id)
         }
     }
 
     pub fn remove_member(&mut self, user_id: UserId) {
-        self.members.retain(|id| *id != user_id);
+        self.members.retain(|id| *id != user_id)
     }
 
     pub fn contains_member(&self, user_id: UserId) -> bool {
