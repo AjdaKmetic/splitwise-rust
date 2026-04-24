@@ -9,10 +9,8 @@ fn main() {
     let Janez = User::new(1, "Janez Novak", "janeznovak@example.com");
     let Marija = User::new(2, "Marija Novak", "marijanovak@example.com");
     let mut group = Group::new(1, "Amsterdam");
-    group.add_member(Janez.id);
-    group.add_member(Marija.id);
-
-    let members = group.members();
+    group.add_member(Janez);
+    group.add_member(Marija);
 
     let expenses = vec![
         Expense::new(
@@ -27,7 +25,7 @@ fn main() {
             2,
             "Dinner".into(),
             100.0,
-            Marija.id,
+            &Marija,
             group.id,
             Split::Exact(vec![(Janez.id, 70.0), (Marija.id, 30.0)]),
         ),
