@@ -73,7 +73,7 @@ mod tests {
     fn test_group_add_member() {
         let mut group = Group::new(1, "Amsterdam");
         let user = User::new(1, "Janez Novak", "janeznovak@example.com");
-        group.add_member(user.id);
+        group.add_member(user);
         assert_eq!(group.member_count(), 1);
         assert!(group.contains_member(user.id));
     }
@@ -131,8 +131,8 @@ mod tests {
         let mut group = Group::new(1, "Amsterdam");
         let user1 = User::new(1, "Janez Novak", "janeznovak@example.com");
         let user2 = User::new(2, "Marija Novak", "marijanovak@example.com");
-        group.add_member(user1.id);
-        group.add_member(user2.id);
+        group.add_member(user1);
+        group.add_member(user2);
         assert_eq!(group.member_count(), 2);
     }
 
