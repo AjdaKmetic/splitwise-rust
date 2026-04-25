@@ -12,15 +12,13 @@ fn main() {
     group.add_member(Janez.id);
     group.add_member(Marija.id);
 
-    let members = group.members();
-
     let expenses = vec![
         Expense::new(
             1,
             "Hotel".into(),
             200.0,
             Janez.id,
-            group.id,
+            Some(group.id),
             Split::Equal(vec![Janez.id, Marija.id]),
         ),
         Expense::new(
@@ -28,7 +26,7 @@ fn main() {
             "Dinner".into(),
             100.0,
             Marija.id,
-            group.id,
+            Some(group.id),
             Split::Exact(vec![(Janez.id, 70.0), (Marija.id, 30.0)]),
         ),
     ];
