@@ -23,7 +23,7 @@ fn main() {
         ),
         Expense::new(
             2,
-            "Dinner".into(),
+            "Vecerja".into(),
             100.0,
             Marija.id,
             Some(group.id),
