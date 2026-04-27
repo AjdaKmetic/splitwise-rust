@@ -46,3 +46,111 @@ pub fn simplify_debts(balances: &HashMap<UserId, f64>) -> Vec<Debt> {
     transactions
 
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_simplify_empty_balances() {
+        let balances = HashMap::new();
+        let debts = simplify_debts(&balances);
+        assert!(debts.is_empty());
+    }
+
+    #[test]
+    fn test_simplify_all_zero_balances() {
+        let mut balances = HashMap::new();
+        balances.insert(1, 0.0);
+        balances.insert(2, 0.0);
+        let debts = simplify_debts(&balances);
+        assert!(debts.is_empty());
+    }
+
+    #[test]
+    fn test_simplify_two_users() {
+        let mut balances = HashMap::new();
+        balances.insert(1, 50.0);
+        balances.insert(2, -50.0);
+        let debts = simplify_debts(&balances);
+        assert_eq!(debts.len(), 1);
+        assert_eq!(debts[0].from(), 2);
+        assert_eq!(debts[0].to(), 1);
+        assert_eq!(debts[0].amount(), 50.0);
+    }
+
+    #[test]
+    fn test_simplify_one_creditor_two_debtors() {
+        let mut balances = HashMap::new();
+        balances.insert(1, 100.0);
+        balances.insert(2, -30.0);
+        balances.insert(3, -70.0);
+        let debts = simplify_debts(&balances);
+        assert_eq!(debts.len(), 2);
+        assert_eq!(debts[0].from(), 3);
+        assert_eq!(debts[0].to(), 1);
+        assert_eq!(debts[0].amount(), 70.0);
+        assert_eq!(debts[1].from(), 2);
+        assert_eq!(debts[1].to(), 1);
+        assert_eq!(debts[1].amount(), 30.0);
+    }
+
+    #[test]
+    fn test_simplify_eliminates_chains() {
+        let mut balances = HashMap::new();
+        balances.insert(1, 50.0);
+        balances.insert(2, 0.0);
+        balances.insert(3, -50.0);
+        let debts = simplify_debts(&balances);
+        assert_eq!(debts.len(), 1);
+        assert_eq!(debts[0].from(), 3);
+        assert_eq!(debts[0].to(), 1);
+        assert_eq!(debts[0].amount(), 50.0);
+    }
+
+    #[test]
+    fn test_simplify_at_most_n_minus_one_debts() {
+        let mut balances = HashMap::new();
+        balances.insert(1, 100.0);
+        balances.insert(2, -30.0);
+        balances.insert(3, -20.0);
+        balances.insert(4, -50.0);
+        let debts = simplify_debts(&balances);
+        assert!(debts.len() <= 3);
+    }
+
+    #[test]
+    fn test_simplify_matched_amounts() {
+        let mut balances = HashMap::new();
+        balances.insert(1, 50.0);
+        balances.insert(2, -50.0);
+        balances.insert(3, 50.0);
+        balances.insert(4, -50.0);
+        let debts = simplify_debts(&balances);
+        assert_eq!(debts.len(), 2);
+        let total_amount: f64 = debts.iter().map(|d| d.amount()).sum();
+        assert_eq!(total_amount, 100.0);
+    }
+
+    #[test]
+    fn test_simplify_preserves_total_amount() {
+        let mut balances = HashMap::new();
+        balances.insert(1, 100.0);
+        balances.insert(2, -30.0);
+        balances.insert(3, -20.0);
+        balances.insert(4, -50.0);
+        let debts = simplify_debts(&balances);
+        let total_amount: f64 = debts.iter().map(|d| d.amount()).sum();
+        assert_eq!(total_amount, 100.0);
+    }
+
+    #[test]
+    fn test_simplify_handles_small_amounts() {
+        let mut balances = HashMap::new();
+        balances.insert(1, 0.005);
+        balances.insert(2, -0.005);
+        let debts = simplify_debts(&balances);
+        assert!(debts.is_empty());
+    }
+}
+
