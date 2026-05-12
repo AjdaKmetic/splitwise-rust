@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="sl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SettleMate</title>
+    <style>
+      body { font-family: -apple-system, sans-serif; padding: 2rem; max-width: 600px; margin: auto; }
+      button { padding: 0.5rem 1rem; cursor: pointer; }
+      input { padding: 0.4rem; margin: 0.2rem; }
+    </style>
+  </head>
+  <body>
+    <h1>SettleMate</h1>
+
+    <p>
+      <input id="name" placeholder="Ime" value="World" />
+      <button id="greet-btn">Say hello</button>
+    </p>
+    <p id="result"></p>
+
+    <script>
+      const { invoke } = window.__TAURI__.core;
+
+      document.getElementById('greet-btn').addEventListener('click', async () => {
+        const name = document.getElementById('name').value;
+        const msg = await invoke('greet', { name });
+        document.getElementById('result').textContent = msg;
+      });
+    </script>
+  </body>
+</html>
