@@ -82,6 +82,7 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
+ "settlemate_rust",
  "tauri",
  "tauri-build",
  "tauri-plugin-log",
@@ -2998,6 +2999,10 @@ checksum = "170fb83ab34de17dc69aa7c67482b22218ddb85da56546f9bd6b929e32a05930"
 dependencies = [
  "stable_deref_trait",
 ]
+
+[[package]]
+name = "settlemate_rust"
+version = "0.1.0"
 
 [[package]]
 name = "sha2"

@@ -1,31 +1,613 @@
 <!DOCTYPE html>
-<html lang="sl">
-  <head>
-    <meta charset="UTF-8" />
-    <title>SettleMate</title>
-    <style>
-      body { font-family: -apple-system, sans-serif; padding: 2rem; max-width: 600px; margin: auto; }
-      button { padding: 0.5rem 1rem; cursor: pointer; }
-      input { padding: 0.4rem; margin: 0.2rem; }
-    </style>
-  </head>
-  <body>
-    <h1>SettleMate</h1>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>SettleMate</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #1c1c1e; background: #f2f2f7;
+      -webkit-text-size-adjust: 100%;
+    }
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      min-height: 100vh;
+    }
+    main {
+      padding: 16px;
+      padding-bottom: calc(84px + env(safe-area-inset-bottom));
+    }
 
-    <p>
-      <input id="name" placeholder="Ime" value="World" />
-      <button id="greet-btn">Say hello</button>
-    </p>
-    <p id="result"></p>
+    .view { display: none; }
+    .view.active { display: block; }
+    .hidden { display: none !important; }
 
-    <script>
-      const { invoke } = window.__TAURI__.core;
+    h1 { font-size: 28px; font-weight: 700; margin: 8px 0 20px; }
+    h2 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
+    h3 { font-size: 15px; font-weight: 600; margin: 16px 0 8px; color: #3c3c43; }
 
-      document.getElementById('greet-btn').addEventListener('click', async () => {
-        const name = document.getElementById('name').value;
-        const msg = await invoke('greet', { name });
-        document.getElementById('result').textContent = msg;
+    .card {
+      background: white; border-radius: 12px;
+      padding: 16px; margin-bottom: 12px;
+    }
+
+    input, select, button, textarea {
+      font-family: inherit; font-size: 16px;
+      padding: 10px 12px; border-radius: 8px;
+      border: 1px solid #d1d1d6; background: white;
+      width: 100%; min-height: 44px;
+    }
+    button {
+      background: #007aff; color: white; border: 0;
+      font-weight: 600; cursor: pointer;
+    }
+    button.secondary { background: #e5e5ea; color: #1c1c1e; }
+    button.danger { background: #ff3b30; color: white; }
+    button:active { opacity: 0.7; }
+
+    .form-row { margin-bottom: 10px; }
+    .form-row.inline { display: flex; gap: 8px; }
+    .form-row.inline input { flex: 1; }
+    .form-row.inline button { width: auto; padding: 10px 18px; flex-shrink: 0; }
+    label { font-size: 13px; font-weight: 500; color: #3c3c43; display: block; margin-bottom: 4px; }
+
+    .button-stack { display: flex; flex-direction: column; gap: 8px; }
+
+    ul.list { list-style: none; padding: 0; margin: 0; }
+    ul.list li {
+      padding: 12px 0;
+      border-bottom: 1px solid #f2f2f7;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    ul.list li:last-child { border-bottom: 0; }
+
+    .friend-name { font-size: 16px; font-weight: 500; }
+    .balance { font-size: 15px; font-weight: 600; }
+    .balance.positive { color: #34c759; }
+    .balance.negative { color: #ff3b30; }
+    .balance.zero { color: #8e8e93; font-weight: 400; }
+
+    .group-meta, .expense-meta { font-size: 13px; color: #8e8e93; margin-top: 2px; }
+
+    .checkbox-grid { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0; }
+    .checkbox-grid label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 16px; font-weight: normal; color: #1c1c1e;
+      margin-bottom: 0;
+    }
+    .checkbox-grid input[type="checkbox"] { width: auto; min-height: 0; margin: 0; }
+
+    .chip {
+      display: inline-block; background: #e5e5ea;
+      padding: 3px 10px; border-radius: 999px;
+      margin: 4px 4px 0 0; font-size: 12px;
+    }
+    .chip.group { background: #d1e7ff; color: #0040b0; }
+
+    .error { color: #ff3b30; font-size: 14px; margin-top: 6px; }
+    .empty { color: #8e8e93; font-style: italic; font-size: 14px; text-align: center; padding: 16px 0; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 12px; font-weight: 500; color: #8e8e93; text-transform: uppercase; padding: 6px 0; }
+    td { padding: 10px 0; border-bottom: 1px solid #f2f2f7; font-size: 16px; }
+    tr:last-child td { border-bottom: 0; }
+
+    .expense-item { cursor: pointer; }
+    .chevron { color: #c7c7cc; font-size: 20px; margin-left: 8px; }
+
+    .tab-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(248, 248, 248, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 0.5px solid rgba(60, 60, 67, 0.18);
+      padding-bottom: env(safe-area-inset-bottom);
+      display: flex;
+      z-index: 100;
+    }
+    .tab-bar button {
+      flex: 1; background: transparent; color: #8e8e93;
+      border: 0; padding: 8px 4px 6px; font-size: 10px; font-weight: 500;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      min-height: 0; border-radius: 0;
+    }
+    .tab-bar button.active { color: #007aff; }
+    .tab-bar button:active { opacity: 0.6; }
+    .tab-bar svg { width: 26px; height: 26px; }
+    #friends-list li { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <main>
+    <!-- FRIENDS -->
+    <section id="view-friends" class="view active">
+      <h1>Friends</h1>
+      <div class="card">
+        <div class="form-row inline">
+          <input id="friend-name" placeholder="Add a friend by name" />
+          <button id="add-friend-btn">Add</button>
+        </div>
+      </div>
+      <div class="card">
+        <ul id="friends-list" class="list"></ul>
+      </div>
+      <div class="card">
+        <button id="simplify-btn" class="secondary">Simplify debts</button>
+        <div id="settlements"></div>
+      </div>
+    </section>
+
+    <section id="view-friend-detail" class="view">
+  <button id="friend-detail-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
+  <h1 id="friend-detail-name"></h1>
+  <div class="card">
+    <h2>Balance breakdown</h2>
+    <ul id="friend-breakdown-list" class="list"></ul>
+  </div>
+  <div class="card">
+    <h2>Activity</h2>
+    <ul id="friend-expenses-list" class="list"></ul>
+  </div>
+</section>
+
+    <!-- GROUPS -->
+    <section id="view-groups" class="view">
+      <h1>Groups</h1>
+      <div class="card">
+        <div class="form-row">
+          <label for="group-name">Group name</label>
+          <input id="group-name" placeholder="e.g. Roommates, Trip to Croatia" />
+        </div>
+        <div class="form-row">
+          <label>Members</label>
+          <div id="group-members" class="checkbox-grid"></div>
+        </div>
+        <button id="create-group-btn">Create group</button>
+        <div id="group-error" class="error"></div>
+      </div>
+      <div class="card">
+        <ul id="groups-list" class="list"></ul>
+      </div>
+    </section>
+
+    <!-- ACTIVITY -->
+    <section id="view-activity" class="view">
+      <h1>Activity</h1>
+      <div class="card" id="expense-form-card">
+        <h2 id="expense-form-title">New expense</h2>
+        <div class="form-row">
+          <input id="expense-desc" placeholder="Description (e.g. Dinner)" />
+        </div>
+        <div class="form-row">
+          <input id="expense-amount" type="number" step="0.01" placeholder="Amount (€)" />
+        </div>
+        <div class="form-row">
+          <label for="expense-payer">Paid by</label>
+          <select id="expense-payer"></select>
+        </div>
+        <div class="form-row">
+          <label for="expense-group">Group (optional)</label>
+          <select id="expense-group">
+            <option value="">— No group (1-on-1) —</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Split between</label>
+          <div id="expense-participants" class="checkbox-grid"></div>
+        </div>
+
+        <div id="expense-actions-add" class="button-stack">
+          <button id="add-expense-btn">Add expense</button>
+        </div>
+        <div id="expense-actions-edit" class="button-stack hidden">
+          <button id="save-expense-btn">Save changes</button>
+          <button id="delete-expense-btn" class="danger">Delete</button>
+          <button id="cancel-edit-btn" class="secondary">Cancel</button>
+        </div>
+
+        <div id="expense-error" class="error"></div>
+      </div>
+      <div class="card">
+        <h2>History</h2>
+        <ul id="expenses-list" class="list"></ul>
+      </div>
+    </section>
+
+    <!-- ACCOUNT -->
+    <section id="view-account" class="view">
+      <h1>Account</h1>
+      <div class="card">
+        <p style="color: #8e8e93; margin: 0;">Profile, settings, and data sync will live here. Coming soon.</p>
+      </div>
+    </section>
+    <section id="view-group-detail" class="view">
+  <button id="group-detail-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
+  <h1 id="group-detail-name"></h1>
+  <p id="group-detail-members" style="color: #8e8e93; margin-top: -12px; margin-bottom: 16px; font-size: 14px;"></p>
+
+  <div class="card">
+    <button id="group-add-expense-btn">+ Add expense to this group</button>
+  </div>
+
+  <div class="card">
+    <h2>Balances within group</h2>
+    <ul id="group-balance-list" class="list"></ul>
+  </div>
+
+  <div class="card">
+    <button id="group-simplify-btn" class="secondary">Simplify debts in this group</button>
+    <div id="group-settlements"></div>
+  </div>
+
+  <div class="card">
+    <h2>Activity</h2>
+    <ul id="group-expenses-list" class="list"></ul>
+  </div>
+</section>
+  </main>
+
+  <nav class="tab-bar">
+    <button data-view="friends" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5"/><path d="M14 19c0-2 2-4 5-4"/></svg>
+      Friends
+    </button>
+    <button data-view="groups">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="8" r="2.5"/><circle cx="17" cy="8" r="2.5"/><circle cx="12" cy="16" r="2.5"/></svg>
+      Groups
+    </button>
+    <button data-view="activity">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      Activity
+    </button>
+    <button data-view="account">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+      Account
+    </button>
+  </nav>
+
+  <script>
+    const { invoke } = window.__TAURI__.core;
+    const $ = id => document.getElementById(id);
+    const fmt = n => `${Math.abs(n).toFixed(2)} €`;
+
+
+    let currentExpenses = [];
+    let editingId = null;
+
+    async function openGroupDetail(groupId, groupName, memberNames, memberIds) {
+  currentGroupId = groupId;
+  currentGroupMemberIds = memberIds;
+
+  $('group-detail-name').textContent = groupName;
+  $('group-detail-members').textContent = `Members: ${memberNames.join(', ')}`;
+
+  const [expenses, balances] = await Promise.all([
+    invoke('list_expenses_for_group', { groupId }),
+    invoke('group_balances', { groupId }),
+  ]);
+
+  $('group-balance-list').innerHTML = balances.length ? balances.map(b => {
+    const cls = b.amount > 0.01 ? 'positive' : b.amount < -0.01 ? 'negative' : 'zero';
+    const label = b.amount > 0.01 ? `gets back ${fmt(b.amount)}`
+                : b.amount < -0.01 ? `owes ${fmt(b.amount)}`
+                : 'settled up';
+    return `<li><span class="friend-name">${b.name}</span><span class="balance ${cls}">${label}</span></li>`;
+  }).join('') : '<li class="empty">No expenses yet.</li>';
+
+  $('group-expenses-list').innerHTML = expenses.length ? expenses.map(e => `<li>
+    <div style="flex: 1;">
+      <div style="font-weight: 600;">${e.description} <span style="font-weight: 400;">— ${fmt(e.amount)}</span></div>
+      <div class="expense-meta">Paid by ${e.paid_by}</div>
+      <div>${e.participants.map(p => `<span class="chip">${p}</span>`).join('')}</div>
+    </div>
+  </li>`).join('') : '<li class="empty">No expenses yet.</li>';
+
+  $('group-settlements').innerHTML = '';
+
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $('view-group-detail').classList.add('active');
+}
+
+    // Tab switching
+    document.querySelectorAll('.tab-bar button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        btn.classList.add('active');
+        $('view-' + btn.dataset.view).classList.add('active');
       });
-    </script>
-  </body>
+    });
+
+    async function refreshAll() {
+      const [friends, groups, expenses] = await Promise.all([
+        invoke('list_friends'),
+        invoke('list_groups'),
+        invoke('list_expenses'),
+      ]);
+      currentExpenses = expenses;
+
+      $('friends-list').innerHTML = friends.length ? friends.map(f => {
+        const cls = f.balance > 0.01 ? 'positive' : f.balance < -0.01 ? 'negative' : 'zero';
+        const label = f.balance > 0.01 ? `gets back ${fmt(f.balance)}`
+                    : f.balance < -0.01 ? `owes ${fmt(f.balance)}`
+                    : 'settled up';
+        return `<li data-friend-id="${f.id}" data-friend-name="${f.name}">
+  <span class="friend-name">${f.name}</span>
+  <span class="balance ${cls}">${label}</span>
+</li>`;
+      }).join('') : '<li class="empty">No friends yet. Add one above.</li>';
+
+      $('groups-list').innerHTML = groups.length ? groups.map(g => `<li
+  data-group-id="${g.id}"
+  data-group-name="${g.name}"
+  data-member-names='${JSON.stringify(g.members)}'
+  data-member-ids='${JSON.stringify(g.member_ids)}'
+>
+  <div>
+    <div class="friend-name">${g.name}</div>
+    <div class="group-meta">${g.members.join(', ')} · ${g.expense_count} expense${g.expense_count === 1 ? '' : 's'}</div>
+  </div>
+  <span class="chevron">›</span>
+</li>`).join('') : '<li class="empty">No groups yet.</li>';
+      $('group-members').innerHTML = friends.length ? friends.map(f => `
+        <label><input type="checkbox" class="group-member" value="${f.id}" /> ${f.name}</label>
+      `).join('') : '<span class="empty">Add friends first.</span>';
+
+      $('expense-payer').innerHTML = friends.length
+        ? friends.map(f => `<option value="${f.id}">${f.name}</option>`).join('')
+        : '<option value="">No friends yet</option>';
+
+      const groupOpts = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+      $('expense-group').innerHTML = '<option value="">— No group (1-on-1) —</option>' + groupOpts;
+
+      // Preserve form state if editing (don't reset checkboxes)
+      const checkedIds = editingId
+        ? new Set(currentExpenses.find(e => e.id === editingId)?.participant_ids || [])
+        : null;
+      $('expense-participants').innerHTML = friends.length ? friends.map(f => {
+        const checked = editingId ? checkedIds.has(f.id) : true;
+        return `<label><input type="checkbox" class="expense-participant" value="${f.id}" ${checked ? 'checked' : ''} /> ${f.name}</label>`;
+      }).join('') : '<span class="empty">Add friends first.</span>';
+
+      $('expenses-list').innerHTML = expenses.length ? expenses.map(e => `<li class="expense-item" data-expense-id="${e.id}">
+        <div style="flex: 1;">
+          <div style="font-weight: 600;">${e.description} <span style="font-weight: 400;">— ${fmt(e.amount)}</span></div>
+          <div class="expense-meta">Paid by ${e.paid_by}${e.group_name ? ` · <span class="chip group">${e.group_name}</span>` : ''}</div>
+          <div>${e.participants.map(p => `<span class="chip">${p}</span>`).join('')}</div>
+        </div>
+        <span class="chevron">›</span>
+      </li>`).join('') : '<li class="empty">No expenses yet.</li>';
+
+      $('settlements').innerHTML = '';
+    }
+
+    function enterEditMode(id) {
+      const e = currentExpenses.find(x => x.id === id);
+      if (!e) return;
+      editingId = id;
+      $('expense-form-title').textContent = 'Edit expense';
+      $('expense-desc').value = e.description;
+      $('expense-amount').value = e.amount.toFixed(2);
+      $('expense-payer').value = String(e.paid_by_id);
+      $('expense-group').value = e.group_id ? String(e.group_id) : '';
+
+      const participantIds = new Set(e.participant_ids);
+      document.querySelectorAll('.expense-participant').forEach(cb => {
+        cb.checked = participantIds.has(parseInt(cb.value, 10));
+      });
+
+      $('expense-actions-add').classList.add('hidden');
+      $('expense-actions-edit').classList.remove('hidden');
+
+      // Switch to Activity tab and scroll to form
+      document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelector('.tab-bar button[data-view="activity"]').classList.add('active');
+      $('view-activity').classList.add('active');
+      setTimeout(() => $('expense-form-card').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    }
+
+    function exitEditMode() {
+      editingId = null;
+      $('expense-form-title').textContent = 'New expense';
+      $('expense-desc').value = '';
+      $('expense-amount').value = '';
+      $('expense-group').value = '';
+      document.querySelectorAll('.expense-participant').forEach(cb => cb.checked = true);
+      $('expense-error').textContent = '';
+      $('expense-actions-add').classList.remove('hidden');
+      $('expense-actions-edit').classList.add('hidden');
+    }
+
+    async function openFriendDetail(friendId, friendName) {
+  const [expenses, breakdown] = await Promise.all([
+    invoke('list_expenses_for_friend', { friendId }),
+    invoke('friend_breakdown', { friendId }),
+  ]);
+
+  $('friend-detail-name').textContent = friendName;
+
+  $('friend-breakdown-list').innerHTML = breakdown.length ? breakdown.map(b => {
+    const cls = b.amount > 0.01 ? 'positive' : 'negative';
+    const label = b.amount > 0.01 ? `owes ${friendName} ${fmt(b.amount)}` : `${friendName} owes ${fmt(b.amount)}`;
+    return `<li><span class="friend-name">${b.name}</span><span class="balance ${cls}">${label}</span></li>`;
+  }).join('') : '<li class="empty">Settled up with everyone.</li>';
+
+  $('friend-expenses-list').innerHTML = expenses.length ? expenses.map(e => `<li>
+    <div style="flex: 1;">
+      <div style="font-weight: 600;">${e.description} <span style="font-weight: 400;">— ${fmt(e.amount)}</span></div>
+      <div class="expense-meta">Paid by ${e.paid_by}${e.group_name ? ` · <span class="chip group">${e.group_name}</span>` : ''}</div>
+    </div>
+  </li>`).join('') : '<li class="empty">No activity yet.</li>';
+
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $('view-friend-detail').classList.add('active');
+}
+
+    $('expenses-list').addEventListener('click', (event) => {
+      const li = event.target.closest('li[data-expense-id]');
+      if (!li) return;
+      enterEditMode(parseInt(li.dataset.expenseId, 10));
+    });
+
+    $('add-friend-btn').addEventListener('click', async () => {
+      const name = $('friend-name').value.trim();
+      if (!name) return;
+      await invoke('add_friend', { name });
+      $('friend-name').value = '';
+      await refreshAll();
+    });
+
+    $('create-group-btn').addEventListener('click', async () => {
+      $('group-error').textContent = '';
+      const name = $('group-name').value.trim();
+      const memberIds = Array.from(document.querySelectorAll('.group-member:checked'))
+        .map(cb => parseInt(cb.value, 10));
+      try {
+        await invoke('create_group', { name, memberIds });
+        $('group-name').value = '';
+        document.querySelectorAll('.group-member').forEach(cb => cb.checked = false);
+        await refreshAll();
+      } catch (err) {
+        $('group-error').textContent = err;
+      }
+    });
+
+    $('friends-list').addEventListener('click', (event) => {
+  const li = event.target.closest('li[data-friend-id]');
+  if (!li) return;
+  openFriendDetail(parseInt(li.dataset.friendId, 10), li.dataset.friendName);
+});
+
+$('friend-detail-back').addEventListener('click', () => {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $('view-friends').classList.add('active');
+});
+
+$('groups-list').addEventListener('click', (event) => {
+  const li = event.target.closest('li[data-group-id]');
+  if (!li) return;
+  openGroupDetail(
+    parseInt(li.dataset.groupId, 10),
+    li.dataset.groupName,
+    JSON.parse(li.dataset.memberNames),
+    JSON.parse(li.dataset.memberIds),
+  );
+});
+
+$('group-detail-back').addEventListener('click', () => {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $('view-groups').classList.add('active');
+});
+
+$('group-simplify-btn').addEventListener('click', async () => {
+  if (currentGroupId === null) return;
+  const settlements = await invoke('simplify_group', { groupId: currentGroupId });
+  $('group-settlements').innerHTML = settlements.length
+    ? `<table style="margin-top: 12px;"><thead><tr><th>From</th><th>To</th><th style="text-align:right">Amount</th></tr></thead>
+       <tbody>${settlements.map(s => `<tr>
+         <td>${s.from}</td><td>${s.to}</td>
+         <td style="text-align:right">${fmt(s.amount)}</td></tr>`).join('')}</tbody></table>`
+    : '<p class="empty">Everyone is settled up.</p>';
+});
+
+$('group-add-expense-btn').addEventListener('click', () => {
+  if (currentGroupId === null) return;
+  // Switch to Activity tab
+  document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelector('.tab-bar button[data-view="activity"]').classList.add('active');
+  $('view-activity').classList.add('active');
+  // Reset form to "Add new" mode (in case it was in edit mode)
+  exitEditMode();
+  // Pre-select the group
+  $('expense-group').value = String(currentGroupId);
+  // Pre-check only group members as participants
+  const memberSet = new Set(currentGroupMemberIds);
+  document.querySelectorAll('.expense-participant').forEach(cb => {
+    cb.checked = memberSet.has(parseInt(cb.value, 10));
+  });
+  // Focus description
+  setTimeout(() => $('expense-desc').focus(), 50);
+});
+
+    function readExpenseForm() {
+      const description = $('expense-desc').value.trim();
+      const amount = parseFloat($('expense-amount').value);
+      const paidBy = parseInt($('expense-payer').value, 10);
+      const groupVal = $('expense-group').value;
+      const groupId = groupVal ? parseInt(groupVal, 10) : null;
+      const participants = Array.from(document.querySelectorAll('.expense-participant:checked'))
+        .map(cb => parseInt(cb.value, 10));
+      return { description, amount, paidBy, groupId, participants };
+    }
+
+    function validateExpenseForm({ description, amount, paidBy, participants }) {
+      if (!description || !amount || !paidBy || !participants.length) {
+        return 'Fill in all fields and select at least one participant.';
+      }
+      return null;
+    }
+
+    $('add-expense-btn').addEventListener('click', async () => {
+      $('expense-error').textContent = '';
+      const f = readExpenseForm();
+      const err = validateExpenseForm(f);
+      if (err) { $('expense-error').textContent = err; return; }
+      try {
+        await invoke('add_expense', f);
+        $('expense-desc').value = '';
+        $('expense-amount').value = '';
+        await refreshAll();
+      } catch (e) {
+        $('expense-error').textContent = e;
+      }
+    });
+
+    $('save-expense-btn').addEventListener('click', async () => {
+      if (editingId === null) return;
+      $('expense-error').textContent = '';
+      const f = readExpenseForm();
+      const err = validateExpenseForm(f);
+      if (err) { $('expense-error').textContent = err; return; }
+      try {
+        await invoke('update_expense', { id: editingId, ...f });
+        exitEditMode();
+        await refreshAll();
+      } catch (e) {
+        $('expense-error').textContent = e;
+      }
+    });
+
+  $('delete-expense-btn').addEventListener('click', async () => {
+  if (editingId === null) return;
+  try {
+    await invoke('delete_expense', { id: editingId });
+    exitEditMode();
+    await refreshAll();
+  } catch (e) {
+    $('expense-error').textContent = e;
+  }
+});
+
+    $('cancel-edit-btn').addEventListener('click', exitEditMode);
+
+    $('simplify-btn').addEventListener('click', async () => {
+      const settlements = await invoke('simplify');
+      $('settlements').innerHTML = settlements.length
+        ? `<table style="margin-top: 12px;"><thead><tr><th>From</th><th>To</th><th style="text-align:right">Amount</th></tr></thead>
+           <tbody>${settlements.map(s => `<tr>
+             <td>${s.from}</td><td>${s.to}</td>
+             <td style="text-align:right">${fmt(s.amount)}</td></tr>`).join('')}</tbody></table>`
+        : '<p class="empty">Everyone is settled up.</p>';
+    });
+
+    refreshAll();
+  </script>
+</body>
 </html>
