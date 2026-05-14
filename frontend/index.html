@@ -88,6 +88,7 @@
       margin: 4px 4px 0 0; font-size: 12px;
     }
     .chip.group { background: #d1e7ff; color: #0040b0; }
+    .chip.me { background: #d4f4dd; color: #1f7a3a; }
 
     .error { color: #ff3b30; font-size: 14px; margin-top: 6px; }
     .empty { color: #8e8e93; font-style: italic; font-size: 14px; text-align: center; padding: 16px 0; }
@@ -119,45 +120,134 @@
     .tab-bar button.active { color: #007aff; }
     .tab-bar button:active { opacity: 0.6; }
     .tab-bar svg { width: 26px; height: 26px; }
-    #friends-list li { cursor: pointer; }
+
+    .add-action-btn {
+      width: auto;
+      padding: 8px 14px;
+      font-size: 14px;
+    }
+
+    .member-remove-btn {
+      width: auto;
+      min-height: 0;
+      padding: 4px 12px;
+      background: transparent;
+      color: #ff3b30;
+      font-size: 22px;
+      font-weight: 400;
+      border: 0;
+      line-height: 1;
+    }
+    .member-remove-btn:active { opacity: 0.4; }
+
+    .fab {
+      position: fixed;
+      bottom: calc(76px + env(safe-area-inset-bottom));
+      right: 16px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #007aff;
+      color: white;
+      font-size: 30px;
+      font-weight: 300;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+      border: 0;
+      padding: 0;
+      min-height: 0;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .fab:active { transform: scale(0.94); opacity: 0.85; }
   </style>
 </head>
 <body>
   <main>
     <!-- FRIENDS -->
     <section id="view-friends" class="view active">
-      <h1>Friends</h1>
-      <div class="card">
-        <div class="form-row inline">
-          <input id="friend-name" placeholder="Add a friend by name" />
-          <button id="add-friend-btn">Add</button>
-        </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0 20px; gap: 12px;">
+        <h1 style="margin: 0;">Friends</h1>
+        <button id="show-add-friend-btn" class="add-action-btn">Add friends</button>
       </div>
+
+      <div class="card" style="padding: 10px 14px;">
+        <label for="friends-filter" style="margin-bottom: 4px;">Show</label>
+        <select id="friends-filter">
+          <option value="all">All friends</option>
+          <option value="owe-me">They owe me</option>
+          <option value="i-owe">I owe them</option>
+          <option value="settled">Settled up</option>
+        </select>
+      </div>
+
       <div class="card">
         <ul id="friends-list" class="list"></ul>
       </div>
+    </section>
+
+    <!-- ADD FRIEND -->
+    <section id="view-add-friend" class="view">
+      <button id="add-friend-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
+      <h1>Add friends</h1>
       <div class="card">
-        <button id="simplify-btn" class="secondary">Simplify debts</button>
-        <div id="settlements"></div>
+        <div class="form-row">
+          <label for="friend-name">Name</label>
+          <input id="friend-name" placeholder="Full name" />
+        </div>
+        <div class="form-row">
+          <label for="friend-contact">Phone number or email address</label>
+          <input id="friend-contact" placeholder="Optional" autocomplete="off" />
+        </div>
+        <div class="button-stack" style="margin-top: 16px;">
+          <button id="add-friend-btn">Add friend</button>
+          <button id="cancel-add-friend-btn" class="secondary">Cancel</button>
+        </div>
+        <div id="add-friend-error" class="error"></div>
       </div>
     </section>
 
+    <!-- FRIEND DETAIL -->
     <section id="view-friend-detail" class="view">
-  <button id="friend-detail-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
-  <h1 id="friend-detail-name"></h1>
-  <div class="card">
-    <h2>Balance breakdown</h2>
-    <ul id="friend-breakdown-list" class="list"></ul>
-  </div>
-  <div class="card">
-    <h2>Activity</h2>
-    <ul id="friend-expenses-list" class="list"></ul>
-  </div>
-</section>
+      <button id="friend-detail-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
+      <h1 id="friend-detail-name"></h1>
+      <div class="card">
+        <h2 id="friend-detail-balance-title">Balance</h2>
+        <ul id="friend-breakdown-list" class="list"></ul>
+      </div>
+      <div class="card">
+        <h2>Activity</h2>
+        <ul id="friend-expenses-list" class="list"></ul>
+      </div>
+    </section>
 
     <!-- GROUPS -->
     <section id="view-groups" class="view">
-      <h1>Groups</h1>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0 20px; gap: 12px;">
+        <h1 style="margin: 0;">Groups</h1>
+        <button id="show-add-group-btn" class="add-action-btn">Create group</button>
+      </div>
+
+      <div class="card" style="padding: 10px 14px;">
+        <label for="groups-filter" style="margin-bottom: 4px;">Show</label>
+        <select id="groups-filter">
+          <option value="all">All groups</option>
+          <option value="outstanding">Outstanding balance</option>
+          <option value="settled">Settled up</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <ul id="groups-list" class="list"></ul>
+      </div>
+    </section>
+
+    <!-- ADD GROUP -->
+    <section id="view-add-group" class="view">
+      <button id="add-group-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
+      <h1>Create group</h1>
       <div class="card">
         <div class="form-row">
           <label for="group-name">Group name</label>
@@ -167,44 +257,120 @@
           <label>Members</label>
           <div id="group-members" class="checkbox-grid"></div>
         </div>
-        <button id="create-group-btn">Create group</button>
+        <div class="button-stack" style="margin-top: 16px;">
+          <button id="create-group-btn">Create group</button>
+          <button id="cancel-create-group-btn" class="secondary">Cancel</button>
+        </div>
         <div id="group-error" class="error"></div>
       </div>
+    </section>
+
+    <!-- GROUP DETAIL -->
+    <section id="view-group-detail" class="view">
+      <button id="group-detail-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
+      <h1 id="group-detail-name"></h1>
+
       <div class="card">
-        <ul id="groups-list" class="list"></ul>
+        <button id="group-add-expense-btn">+ Add expense to this group</button>
+      </div>
+
+      <div class="card">
+        <h2>Members</h2>
+        <ul id="group-members-list" class="list"></ul>
+        <button id="show-add-members-btn" class="secondary" style="margin-top: 8px;">+ Add members</button>
+        <div id="add-members-form" class="hidden" style="margin-top: 12px;">
+          <div id="add-members-list" class="checkbox-grid"></div>
+          <div class="button-stack" style="margin-top: 12px;">
+            <button id="confirm-add-members-btn">Add to group</button>
+            <button id="cancel-add-members-btn" class="secondary">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Balances within group</h2>
+        <ul id="group-balance-list" class="list"></ul>
+      </div>
+
+      <div class="card">
+        <button id="group-simplify-btn" class="secondary">Simplify debts in this group</button>
+        <div id="group-settlements"></div>
+      </div>
+
+      <div class="card">
+        <h2>Activity</h2>
+        <ul id="group-expenses-list" class="list"></ul>
+      </div>
+
+      <div class="card">
+        <button id="delete-group-btn" class="danger">Delete group</button>
+        <div id="delete-group-confirm" class="hidden" style="margin-top: 12px;">
+          <p style="font-size: 14px; margin: 0 0 12px; color: #1c1c1e;">This will permanently delete the group and all its expenses. This cannot be undone.</p>
+          <div class="button-stack">
+            <button id="confirm-delete-group-btn" class="danger">Yes, delete group</button>
+            <button id="cancel-delete-group-btn" class="secondary">Cancel</button>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- ACTIVITY -->
     <section id="view-activity" class="view">
       <h1>Activity</h1>
-      <div class="card" id="expense-form-card">
-        <h2 id="expense-form-title">New expense</h2>
+      <div class="card">
+        <ul id="expenses-list" class="list"></ul>
+      </div>
+    </section>
+
+    <!-- ADD / EDIT EXPENSE -->
+    <section id="view-add-expense" class="view">
+      <button id="add-expense-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
+      <h1 id="expense-form-title">New expense</h1>
+
+      <div class="card">
+        <h2>Who's involved?</h2>
         <div class="form-row">
-          <input id="expense-desc" placeholder="Description (e.g. Dinner)" />
+          <select id="expense-context">
+            <option value="">— Choose —</option>
+            <option value="oneonone">1-on-1 between two people</option>
+          </select>
+        </div>
+
+        <div id="oneonone-section" class="hidden">
+          <div class="form-row">
+            <label for="expense-friend-a">Person 1</label>
+            <select id="expense-friend-a"></select>
+          </div>
+          <div class="form-row">
+            <label for="expense-friend-b">Person 2</label>
+            <select id="expense-friend-b"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card hidden" id="expense-details-section">
+        <div class="form-row">
+          <label for="expense-desc">Description</label>
+          <input id="expense-desc" placeholder="e.g. Dinner" />
         </div>
         <div class="form-row">
-          <input id="expense-amount" type="number" step="0.01" placeholder="Amount (€)" />
+          <label for="expense-amount">Amount</label>
+          <input id="expense-amount" type="number" step="0.01" placeholder="0.00 €" />
         </div>
         <div class="form-row">
           <label for="expense-payer">Paid by</label>
           <select id="expense-payer"></select>
         </div>
-        <div class="form-row">
-          <label for="expense-group">Group (optional)</label>
-          <select id="expense-group">
-            <option value="">— No group (1-on-1) —</option>
-          </select>
-        </div>
-        <div class="form-row">
+        <div class="form-row hidden" id="group-participants-row">
           <label>Split between</label>
           <div id="expense-participants" class="checkbox-grid"></div>
         </div>
 
-        <div id="expense-actions-add" class="button-stack">
+        <div id="expense-actions-add" class="button-stack" style="margin-top: 16px;">
           <button id="add-expense-btn">Add expense</button>
+          <button id="cancel-add-expense-btn" class="secondary">Cancel</button>
         </div>
-        <div id="expense-actions-edit" class="button-stack hidden">
+        <div id="expense-actions-edit" class="button-stack hidden" style="margin-top: 16px;">
           <button id="save-expense-btn">Save changes</button>
           <button id="delete-expense-btn" class="danger">Delete</button>
           <button id="cancel-edit-btn" class="secondary">Cancel</button>
@@ -212,44 +378,35 @@
 
         <div id="expense-error" class="error"></div>
       </div>
-      <div class="card">
-        <h2>History</h2>
-        <ul id="expenses-list" class="list"></ul>
-      </div>
     </section>
 
     <!-- ACCOUNT -->
     <section id="view-account" class="view">
       <h1>Account</h1>
+
+      <div class="card hidden" id="account-current-card">
+        <h2>Profile</h2>
+        <p style="font-size: 18px; font-weight: 600; margin: 0 0 4px;" id="account-current-name"></p>
+        <p style="color: #8e8e93; margin: 0;" id="account-current-balance"></p>
+      </div>
+
       <div class="card">
-        <p style="color: #8e8e93; margin: 0;">Profile, settings, and data sync will live here. Coming soon.</p>
+        <h2 id="account-picker-title">Set up your profile</h2>
+        <p style="font-size: 14px; color: #3c3c43; margin: 0 0 12px;">Pick which person represents you. Friends, balances and expenses will be shown from your perspective.</p>
+        <div class="form-row">
+          <label for="account-user-select">I am</label>
+          <select id="account-user-select"></select>
+        </div>
+        <div class="button-stack" style="margin-top: 12px;">
+          <button id="account-set-me-btn">Save</button>
+          <button id="account-clear-me-btn" class="secondary hidden">Clear profile</button>
+        </div>
+        <div id="account-error" class="error"></div>
       </div>
     </section>
-    <section id="view-group-detail" class="view">
-  <button id="group-detail-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
-  <h1 id="group-detail-name"></h1>
-  <p id="group-detail-members" style="color: #8e8e93; margin-top: -12px; margin-bottom: 16px; font-size: 14px;"></p>
-
-  <div class="card">
-    <button id="group-add-expense-btn">+ Add expense to this group</button>
-  </div>
-
-  <div class="card">
-    <h2>Balances within group</h2>
-    <ul id="group-balance-list" class="list"></ul>
-  </div>
-
-  <div class="card">
-    <button id="group-simplify-btn" class="secondary">Simplify debts in this group</button>
-    <div id="group-settlements"></div>
-  </div>
-
-  <div class="card">
-    <h2>Activity</h2>
-    <ul id="group-expenses-list" class="list"></ul>
-  </div>
-</section>
   </main>
+
+  <button id="fab-add-expense" class="fab" aria-label="Add expense">+</button>
 
   <nav class="tab-bar">
     <button data-view="friends" class="active">
@@ -275,194 +432,588 @@
     const $ = id => document.getElementById(id);
     const fmt = n => `${Math.abs(n).toFixed(2)} €`;
 
-
     let currentExpenses = [];
+    let currentFriendsData = [];
+    let currentGroupsData = [];
+    let currentUserData = null;
     let editingId = null;
+    let currentGroupId = null;
+    let currentGroupMemberIds = [];
+    let expenseFormReturnView = 'view-activity';
 
-    async function openGroupDetail(groupId, groupName, memberNames, memberIds) {
-  currentGroupId = groupId;
-  currentGroupMemberIds = memberIds;
+    function getAllUsers() {
+      return currentUserData ? [currentUserData, ...currentFriendsData] : currentFriendsData;
+    }
 
-  $('group-detail-name').textContent = groupName;
-  $('group-detail-members').textContent = `Members: ${memberNames.join(', ')}`;
+    function isMe(userId) {
+      return currentUserData !== null && userId === currentUserData.id;
+    }
 
-  const [expenses, balances] = await Promise.all([
-    invoke('list_expenses_for_group', { groupId }),
-    invoke('group_balances', { groupId }),
-  ]);
+    function labelFor(name, userId) {
+      return isMe(userId) ? `${name} (you)` : name;
+    }
 
-  $('group-balance-list').innerHTML = balances.length ? balances.map(b => {
-    const cls = b.amount > 0.01 ? 'positive' : b.amount < -0.01 ? 'negative' : 'zero';
-    const label = b.amount > 0.01 ? `gets back ${fmt(b.amount)}`
-                : b.amount < -0.01 ? `owes ${fmt(b.amount)}`
-                : 'settled up';
-    return `<li><span class="friend-name">${b.name}</span><span class="balance ${cls}">${label}</span></li>`;
-  }).join('') : '<li class="empty">No expenses yet.</li>';
+    function nameOrYou(name, userId) {
+      return isMe(userId) ? 'you' : name;
+    }
 
-  $('group-expenses-list').innerHTML = expenses.length ? expenses.map(e => `<li>
-    <div style="flex: 1;">
-      <div style="font-weight: 600;">${e.description} <span style="font-weight: 400;">— ${fmt(e.amount)}</span></div>
-      <div class="expense-meta">Paid by ${e.paid_by}</div>
-      <div>${e.participants.map(p => `<span class="chip">${p}</span>`).join('')}</div>
-    </div>
-  </li>`).join('') : '<li class="empty">No expenses yet.</li>';
+    function updateFabVisibility() {
+      const activeView = document.querySelector('.view.active');
+      const showFab = activeView && (
+        activeView.id === 'view-friends' ||
+        activeView.id === 'view-groups' ||
+        activeView.id === 'view-activity'
+      );
+      $('fab-add-expense').classList.toggle('hidden', !showFab);
+    }
 
-  $('group-settlements').innerHTML = '';
+    function showView(viewId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      $(viewId).classList.add('active');
+      updateFabVisibility();
+    }
 
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  $('view-group-detail').classList.add('active');
-}
+    function switchToTab(tabName) {
+      document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelector(`.tab-bar button[data-view="${tabName}"]`).classList.add('active');
+      $(`view-${tabName}`).classList.add('active');
+      updateFabVisibility();
+    }
 
-    // Tab switching
     document.querySelectorAll('.tab-bar button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        btn.classList.add('active');
-        $('view-' + btn.dataset.view).classList.add('active');
-      });
+      btn.addEventListener('click', () => switchToTab(btn.dataset.view));
     });
 
+    function rebuildContextDropdown() {
+      const prev = $('expense-context').value;
+      const groupOpts = currentGroupsData.map(g =>
+        `<option value="group:${g.id}">In ${g.name}</option>`
+      ).join('');
+      $('expense-context').innerHTML =
+        '<option value="">— Choose —</option>' +
+        '<option value="oneonone">1-on-1 between two people</option>' +
+        groupOpts;
+      $('expense-context').value = prev;
+    }
+
+    function applyExpenseContext(preserveEditState = false) {
+      const ctx = $('expense-context').value;
+      const isOneonone = ctx === 'oneonone';
+      const isGroup = ctx.startsWith('group:');
+
+      $('oneonone-section').classList.toggle('hidden', !isOneonone);
+      $('expense-details-section').classList.toggle('hidden', !ctx);
+      $('group-participants-row').classList.toggle('hidden', !isGroup);
+
+      if (isOneonone) {
+        renderOneOnOneSection(preserveEditState);
+      } else if (isGroup) {
+        const groupId = parseInt(ctx.substring(6), 10);
+        renderGroupSection(groupId, preserveEditState);
+      }
+    }
+
+    function renderOneOnOneSection(preserveEditState = false) {
+      const all = getAllUsers();
+      const friendOpts = all.map(f =>
+        `<option value="${f.id}">${labelFor(f.name, f.id)}</option>`
+      ).join('');
+
+      const prevA = $('expense-friend-a').value;
+      const prevB = $('expense-friend-b').value;
+
+      $('expense-friend-a').innerHTML = friendOpts;
+      $('expense-friend-b').innerHTML = friendOpts;
+
+      if (preserveEditState && editingId !== null) {
+        const e = currentExpenses.find(x => x.id === editingId);
+        if (e && e.participant_ids.length >= 2) {
+          $('expense-friend-a').value = String(e.participant_ids[0]);
+          $('expense-friend-b').value = String(e.participant_ids[1]);
+        }
+      } else {
+        if (currentUserData && (!prevA || !all.some(f => String(f.id) === prevA))) {
+          $('expense-friend-a').value = String(currentUserData.id);
+        } else if (prevA && all.some(f => String(f.id) === prevA)) {
+          $('expense-friend-a').value = prevA;
+        }
+
+        const aVal = $('expense-friend-a').value;
+        if (prevB && all.some(f => String(f.id) === prevB) && prevB !== aVal) {
+          $('expense-friend-b').value = prevB;
+        } else {
+          const others = all.filter(f => String(f.id) !== aVal);
+          if (others.length) $('expense-friend-b').value = String(others[0].id);
+        }
+      }
+
+      updateOneOnOnePayer(preserveEditState);
+    }
+
+    function updateOneOnOnePayer(preserveEditState = false) {
+      const a = $('expense-friend-a').value;
+      const b = $('expense-friend-b').value;
+      const all = getAllUsers();
+      const friendA = all.find(f => String(f.id) === a);
+      const friendB = all.find(f => String(f.id) === b);
+
+      const opts = [];
+      if (friendA) opts.push(`<option value="${friendA.id}">${labelFor(friendA.name, friendA.id)}</option>`);
+      if (friendB && (!friendA || friendB.id !== friendA.id)) {
+        opts.push(`<option value="${friendB.id}">${labelFor(friendB.name, friendB.id)}</option>`);
+      }
+
+      const prevPayer = $('expense-payer').value;
+      $('expense-payer').innerHTML = opts.join('') || '<option value="">No options</option>';
+
+      if (preserveEditState && editingId !== null) {
+        const e = currentExpenses.find(x => x.id === editingId);
+        if (e) $('expense-payer').value = String(e.paid_by_id);
+      } else if (currentUserData && (friendA?.id === currentUserData.id || friendB?.id === currentUserData.id)) {
+        $('expense-payer').value = String(currentUserData.id);
+      } else if (prevPayer && (prevPayer === a || prevPayer === b)) {
+        $('expense-payer').value = prevPayer;
+      }
+    }
+
+    function renderGroupSection(groupId, preserveEditState = false) {
+      const group = currentGroupsData.find(g => g.id === groupId);
+      if (!group) return;
+
+      const memberSet = new Set(group.member_ids);
+      const allUsers = getAllUsers();
+      const members = allUsers.filter(f => memberSet.has(f.id));
+
+      const prevPayer = $('expense-payer').value;
+      $('expense-payer').innerHTML = members.length
+        ? members.map(f => `<option value="${f.id}">${labelFor(f.name, f.id)}</option>`).join('')
+        : '<option value="">No members</option>';
+
+      let checkedIds;
+      if (preserveEditState && editingId !== null) {
+        const e = currentExpenses.find(x => x.id === editingId);
+        checkedIds = new Set(e?.participant_ids || []);
+        if (e) $('expense-payer').value = String(e.paid_by_id);
+      } else {
+        if (currentUserData && members.some(f => f.id === currentUserData.id)) {
+          $('expense-payer').value = String(currentUserData.id);
+        } else if (prevPayer && members.some(f => String(f.id) === prevPayer)) {
+          $('expense-payer').value = prevPayer;
+        }
+        checkedIds = new Set(members.map(f => f.id));
+      }
+
+      $('expense-participants').innerHTML = members.length ? members.map(f => {
+        const checked = checkedIds.has(f.id);
+        return `<label><input type="checkbox" class="expense-participant" value="${f.id}" ${checked ? 'checked' : ''} /> ${labelFor(f.name, f.id)}</label>`;
+      }).join('') : '<span class="empty">No members in this group.</span>';
+    }
+
+    function refreshAccountView() {
+      const all = getAllUsers();
+
+      if (currentUserData) {
+        $('account-current-card').classList.remove('hidden');
+        $('account-current-name').textContent = currentUserData.name;
+        const bal = currentUserData.balance;
+        $('account-current-balance').textContent =
+          bal > 0.01 ? `Overall, you are owed ${fmt(bal)}`
+          : bal < -0.01 ? `Overall, you owe ${fmt(bal)}`
+          : 'You are all settled up.';
+        $('account-picker-title').textContent = 'Change profile';
+        $('account-clear-me-btn').classList.remove('hidden');
+      } else {
+        $('account-current-card').classList.add('hidden');
+        $('account-picker-title').textContent = 'Set up your profile';
+        $('account-clear-me-btn').classList.add('hidden');
+      }
+
+      $('account-user-select').innerHTML = all.length
+        ? all.map(f => {
+            const sel = currentUserData && f.id === currentUserData.id ? 'selected' : '';
+            return `<option value="${f.id}" ${sel}>${f.name}</option>`;
+          }).join('')
+        : '<option value="">Add a friend first</option>';
+    }
+
     async function refreshAll() {
+      currentUserData = await invoke('get_current_user');
+
       const [friends, groups, expenses] = await Promise.all([
         invoke('list_friends'),
         invoke('list_groups'),
         invoke('list_expenses'),
       ]);
       currentExpenses = expenses;
+      currentFriendsData = friends;
+      currentGroupsData = groups;
 
-      $('friends-list').innerHTML = friends.length ? friends.map(f => {
+      // FRIENDS list with filtering
+      const meSet = currentUserData !== null;
+      const friendsFilter = $('friends-filter').value;
+      let filteredFriends = [...friends];
+      let friendsEmptyMsg = 'No friends yet. Tap "Add friends" to start.';
+      if (friendsFilter === 'owe-me') {
+        filteredFriends = filteredFriends.filter(f => f.balance > 0.01);
+        filteredFriends.sort((a, b) => b.balance - a.balance);
+        friendsEmptyMsg = 'Nobody owes you anything.';
+      } else if (friendsFilter === 'i-owe') {
+        filteredFriends = filteredFriends.filter(f => f.balance < -0.01);
+        filteredFriends.sort((a, b) => a.balance - b.balance);
+        friendsEmptyMsg = "You don't owe anyone.";
+      } else if (friendsFilter === 'settled') {
+        filteredFriends = filteredFriends.filter(f => Math.abs(f.balance) <= 0.01);
+        filteredFriends.sort((a, b) => a.name.localeCompare(b.name));
+        friendsEmptyMsg = 'No settled-up friends yet.';
+      } else {
+        filteredFriends.sort((a, b) => a.name.localeCompare(b.name));
+      }
+
+      $('friends-list').innerHTML = filteredFriends.length ? filteredFriends.map(f => {
         const cls = f.balance > 0.01 ? 'positive' : f.balance < -0.01 ? 'negative' : 'zero';
-        const label = f.balance > 0.01 ? `gets back ${fmt(f.balance)}`
-                    : f.balance < -0.01 ? `owes ${fmt(f.balance)}`
-                    : 'settled up';
+        const label = meSet
+          ? (f.balance > 0.01 ? `owes you ${fmt(f.balance)}`
+             : f.balance < -0.01 ? `you owe ${fmt(f.balance)}`
+             : 'settled up')
+          : (f.balance > 0.01 ? `gets back ${fmt(f.balance)}`
+             : f.balance < -0.01 ? `owes ${fmt(f.balance)}`
+             : 'settled up');
         return `<li data-friend-id="${f.id}" data-friend-name="${f.name}">
-  <span class="friend-name">${f.name}</span>
-  <span class="balance ${cls}">${label}</span>
-</li>`;
-      }).join('') : '<li class="empty">No friends yet. Add one above.</li>';
+          <span class="friend-name">${f.name}</span>
+          <span class="balance ${cls}">${label}</span>
+        </li>`;
+      }).join('') : `<li class="empty">${friendsEmptyMsg}</li>`;
 
-      $('groups-list').innerHTML = groups.length ? groups.map(g => `<li
-  data-group-id="${g.id}"
-  data-group-name="${g.name}"
-  data-member-names='${JSON.stringify(g.members)}'
-  data-member-ids='${JSON.stringify(g.member_ids)}'
->
-  <div>
-    <div class="friend-name">${g.name}</div>
-    <div class="group-meta">${g.members.join(', ')} · ${g.expense_count} expense${g.expense_count === 1 ? '' : 's'}</div>
-  </div>
-  <span class="chevron">›</span>
-</li>`).join('') : '<li class="empty">No groups yet.</li>';
-      $('group-members').innerHTML = friends.length ? friends.map(f => `
-        <label><input type="checkbox" class="group-member" value="${f.id}" /> ${f.name}</label>
-      `).join('') : '<span class="empty">Add friends first.</span>';
+      const groupsFilter = $('groups-filter').value;
+      let filteredGroups = [...groups];
+      let groupsEmptyMsg = 'No groups yet. Tap "Create group" to start.';
+      if (groupsFilter === 'outstanding') {
+        filteredGroups = filteredGroups.filter(g => g.has_outstanding);
+        groupsEmptyMsg = 'No groups with outstanding balances.';
+      } else if (groupsFilter === 'settled') {
+        filteredGroups = filteredGroups.filter(g => !g.has_outstanding && g.expense_count > 0);
+        groupsEmptyMsg = 'No settled groups yet.';
+      }
+      filteredGroups.sort((a, b) => a.name.localeCompare(b.name));
 
-      $('expense-payer').innerHTML = friends.length
-        ? friends.map(f => `<option value="${f.id}">${f.name}</option>`).join('')
-        : '<option value="">No friends yet</option>';
-
-      const groupOpts = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-      $('expense-group').innerHTML = '<option value="">— No group (1-on-1) —</option>' + groupOpts;
-
-      // Preserve form state if editing (don't reset checkboxes)
-      const checkedIds = editingId
-        ? new Set(currentExpenses.find(e => e.id === editingId)?.participant_ids || [])
-        : null;
-      $('expense-participants').innerHTML = friends.length ? friends.map(f => {
-        const checked = editingId ? checkedIds.has(f.id) : true;
-        return `<label><input type="checkbox" class="expense-participant" value="${f.id}" ${checked ? 'checked' : ''} /> ${f.name}</label>`;
-      }).join('') : '<span class="empty">Add friends first.</span>';
-
-      $('expenses-list').innerHTML = expenses.length ? expenses.map(e => `<li class="expense-item" data-expense-id="${e.id}">
-        <div style="flex: 1;">
-          <div style="font-weight: 600;">${e.description} <span style="font-weight: 400;">— ${fmt(e.amount)}</span></div>
-          <div class="expense-meta">Paid by ${e.paid_by}${e.group_name ? ` · <span class="chip group">${e.group_name}</span>` : ''}</div>
-          <div>${e.participants.map(p => `<span class="chip">${p}</span>`).join('')}</div>
+      $('groups-list').innerHTML = filteredGroups.length ? filteredGroups.map(g => `<li
+        data-group-id="${g.id}"
+        data-group-name="${g.name}"
+        data-member-names='${JSON.stringify(g.members)}'
+        data-member-ids='${JSON.stringify(g.member_ids)}'
+      >
+        <div>
+          <div class="friend-name">${g.name}</div>
+          <div class="group-meta">${g.members.join(', ')} · ${g.expense_count} expense${g.expense_count === 1 ? '' : 's'}</div>
         </div>
         <span class="chevron">›</span>
-      </li>`).join('') : '<li class="empty">No expenses yet.</li>';
+      </li>`).join('') : `<li class="empty">${groupsEmptyMsg}</li>`;
 
-      $('settlements').innerHTML = '';
+      // Group creation members: include me with (you) label, pre-checked
+      const allForGroup = getAllUsers();
+      $('group-members').innerHTML = allForGroup.length ? allForGroup.map(f => {
+        const meFlag = currentUserData && f.id === currentUserData.id;
+        const checked = meFlag ? 'checked' : '';
+        return `<label><input type="checkbox" class="group-member" value="${f.id}" ${checked} /> ${labelFor(f.name, f.id)}</label>`;
+      }).join('') : '<span class="empty">Add friends first.</span>';
+
+      rebuildContextDropdown();
+
+      $('expenses-list').innerHTML = expenses.length ? expenses.map(e => {
+        const payer = nameOrYou(e.paid_by, e.paid_by_id);
+        const partChips = e.participants.map((p, i) => {
+          const pid = e.participant_ids[i];
+          const text = nameOrYou(p, pid);
+          const cls = isMe(pid) ? 'chip me' : 'chip';
+          return `<span class="${cls}">${text}</span>`;
+        }).join('');
+        return `<li class="expense-item" data-expense-id="${e.id}">
+          <div style="flex: 1;">
+            <div style="font-weight: 600;">${e.description} <span style="font-weight: 400;">— ${fmt(e.amount)}</span></div>
+            <div class="expense-meta">Paid by ${payer}${e.group_name ? ` · <span class="chip group">${e.group_name}</span>` : ''}</div>
+            <div>${partChips}</div>
+          </div>
+          <span class="chevron">›</span>
+        </li>`;
+      }).join('') : '<li class="empty">No activity yet. Tap + to add an expense.</li>';
+
+      refreshAccountView();
     }
 
-    function enterEditMode(id) {
+    async function openFriendDetail(friendId, friendName) {
+      const expenses = await invoke('list_expenses_for_friend', { friendId });
+
+      $('friend-detail-name').textContent = friendName;
+
+      if (currentUserData) {
+        const friend = currentFriendsData.find(f => f.id === friendId);
+        const bal = friend ? friend.balance : 0;
+        const cls = bal > 0.01 ? 'positive' : bal < -0.01 ? 'negative' : 'zero';
+        const label = bal > 0.01 ? `owes you ${fmt(bal)}`
+                    : bal < -0.01 ? `you owe ${fmt(bal)}`
+                    : 'settled up';
+        $('friend-detail-balance-title').textContent = 'Balance with you';
+        $('friend-breakdown-list').innerHTML = `<li>
+          <span class="friend-name">${friendName}</span>
+          <span class="balance ${cls}">${label}</span>
+        </li>`;
+      } else {
+        const breakdown = await invoke('friend_breakdown', { friendId });
+        $('friend-detail-balance-title').textContent = 'Balance breakdown';
+        $('friend-breakdown-list').innerHTML = breakdown.length ? breakdown.map(b => {
+          const cls = b.amount > 0.01 ? 'positive' : 'negative';
+          const label = b.amount > 0.01 ? `owes ${friendName} ${fmt(b.amount)}` : `${friendName} owes ${fmt(b.amount)}`;
+          return `<li><span class="friend-name">${b.name}</span><span class="balance ${cls}">${label}</span></li>`;
+        }).join('') : '<li class="empty">Settled up with everyone.</li>';
+      }
+
+      $('friend-expenses-list').innerHTML = expenses.length ? expenses.map(e => {
+        const payer = nameOrYou(e.paid_by, e.paid_by_id);
+        return `<li>
+          <div style="flex: 1;">
+            <div style="font-weight: 600;">${e.description} <span style="font-weight: 400;">— ${fmt(e.amount)}</span></div>
+            <div class="expense-meta">Paid by ${payer}${e.group_name ? ` · <span class="chip group">${e.group_name}</span>` : ''}</div>
+          </div>
+        </li>`;
+      }).join('') : '<li class="empty">No activity yet.</li>';
+
+      showView('view-friend-detail');
+    }
+
+    async function openGroupDetail(groupId, groupName, memberNames, memberIds) {
+      currentGroupId = groupId;
+      currentGroupMemberIds = memberIds;
+
+      $('group-detail-name').textContent = groupName;
+
+      $('group-members-list').innerHTML = memberIds.map((id, i) => {
+        const label = labelFor(memberNames[i], id);
+        return `<li>
+          <span class="friend-name">${label}</span>
+          <button class="member-remove-btn" data-member-id="${id}" aria-label="Remove member">×</button>
+        </li>`;
+      }).join('');
+
+      $('show-add-members-btn').classList.remove('hidden');
+      $('add-members-form').classList.add('hidden');
+      $('delete-group-btn').classList.remove('hidden');
+      $('delete-group-confirm').classList.add('hidden');
+
+      const [expenses, balances] = await Promise.all([
+        invoke('list_expenses_for_group', { groupId }),
+        invoke('group_balances', { groupId }),
+      ]);
+
+      $('group-balance-list').innerHTML = balances.length ? balances.map(b => {
+        const cls = b.amount > 0.01 ? 'positive' : b.amount < -0.01 ? 'negative' : 'zero';
+        const meFlag = isMe(b.user_id);
+        const label = meFlag
+          ? (b.amount > 0.01 ? `you get back ${fmt(b.amount)}`
+             : b.amount < -0.01 ? `you owe ${fmt(b.amount)}`
+             : 'settled up')
+          : (b.amount > 0.01 ? `gets back ${fmt(b.amount)}`
+             : b.amount < -0.01 ? `owes ${fmt(b.amount)}`
+             : 'settled up');
+        return `<li><span class="friend-name">${labelFor(b.name, b.user_id)}</span><span class="balance ${cls}">${label}</span></li>`;
+      }).join('') : '<li class="empty">No expenses yet.</li>';
+
+      $('group-expenses-list').innerHTML = expenses.length ? expenses.map(e => {
+        const payer = nameOrYou(e.paid_by, e.paid_by_id);
+        const partChips = e.participants.map((p, i) => {
+          const pid = e.participant_ids[i];
+          const text = nameOrYou(p, pid);
+          const cls = isMe(pid) ? 'chip me' : 'chip';
+          return `<span class="${cls}">${text}</span>`;
+        }).join('');
+        return `<li>
+          <div style="flex: 1;">
+            <div style="font-weight: 600;">${e.description} <span style="font-weight: 400;">— ${fmt(e.amount)}</span></div>
+            <div class="expense-meta">Paid by ${payer}</div>
+            <div>${partChips}</div>
+          </div>
+        </li>`;
+      }).join('') : '<li class="empty">No expenses yet.</li>';
+
+      $('group-settlements').innerHTML = '';
+      showView('view-group-detail');
+    }
+
+    async function refreshGroupDetail() {
+      if (currentGroupId === null) return;
+      const groups = await invoke('list_groups');
+      const g = groups.find(gr => gr.id === currentGroupId);
+      if (!g) {
+        currentGroupId = null;
+        await refreshAll();
+        showView('view-groups');
+        return;
+      }
+      await openGroupDetail(g.id, g.name, g.members, g.member_ids);
+    }
+
+    function resetExpenseForm() {
+      $('expense-form-title').textContent = 'New expense';
+      $('expense-desc').value = '';
+      $('expense-amount').value = '';
+      $('expense-error').textContent = '';
+      $('expense-actions-add').classList.remove('hidden');
+      $('expense-actions-edit').classList.add('hidden');
+      $('expense-context').value = '';
+      applyExpenseContext(false);
+    }
+
+    function openAddExpense(returnView, groupIdPreset = null) {
+      expenseFormReturnView = returnView;
+      editingId = null;
+      rebuildContextDropdown();
+      resetExpenseForm();
+
+      if (groupIdPreset !== null) {
+        $('expense-context').value = `group:${groupIdPreset}`;
+        applyExpenseContext(false);
+      }
+
+      showView('view-add-expense');
+      setTimeout(() => $('expense-desc').focus(), 50);
+    }
+
+    function openEditExpense(id, returnView) {
+      expenseFormReturnView = returnView;
       const e = currentExpenses.find(x => x.id === id);
       if (!e) return;
+
       editingId = id;
+      rebuildContextDropdown();
+      resetExpenseForm();
+
       $('expense-form-title').textContent = 'Edit expense';
       $('expense-desc').value = e.description;
       $('expense-amount').value = e.amount.toFixed(2);
-      $('expense-payer').value = String(e.paid_by_id);
-      $('expense-group').value = e.group_id ? String(e.group_id) : '';
 
-      const participantIds = new Set(e.participant_ids);
-      document.querySelectorAll('.expense-participant').forEach(cb => {
-        cb.checked = participantIds.has(parseInt(cb.value, 10));
-      });
+      if (e.group_id) {
+        $('expense-context').value = `group:${e.group_id}`;
+      } else {
+        $('expense-context').value = 'oneonone';
+      }
+      applyExpenseContext(true);
 
       $('expense-actions-add').classList.add('hidden');
       $('expense-actions-edit').classList.remove('hidden');
 
-      // Switch to Activity tab and scroll to form
-      document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.querySelector('.tab-bar button[data-view="activity"]').classList.add('active');
-      $('view-activity').classList.add('active');
-      setTimeout(() => $('expense-form-card').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      showView('view-add-expense');
     }
 
-    function exitEditMode() {
+    async function returnFromExpenseForm() {
+      const ret = expenseFormReturnView;
       editingId = null;
-      $('expense-form-title').textContent = 'New expense';
-      $('expense-desc').value = '';
-      $('expense-amount').value = '';
-      $('expense-group').value = '';
-      document.querySelectorAll('.expense-participant').forEach(cb => cb.checked = true);
-      $('expense-error').textContent = '';
-      $('expense-actions-add').classList.remove('hidden');
-      $('expense-actions-edit').classList.add('hidden');
+      resetExpenseForm();
+      await refreshAll();
+
+      if (ret === 'view-group-detail' && currentGroupId !== null) {
+        await refreshGroupDetail();
+        return;
+      }
+
+      const tabMap = {
+        'view-friends': 'friends',
+        'view-groups': 'groups',
+        'view-activity': 'activity',
+        'view-account': 'account',
+      };
+      const tabName = tabMap[ret];
+      if (tabName) {
+        switchToTab(tabName);
+      } else {
+        showView(ret);
+      }
     }
 
-    async function openFriendDetail(friendId, friendName) {
-  const [expenses, breakdown] = await Promise.all([
-    invoke('list_expenses_for_friend', { friendId }),
-    invoke('friend_breakdown', { friendId }),
-  ]);
+    function readExpenseForm() {
+      const description = $('expense-desc').value.trim();
+      const amount = parseFloat($('expense-amount').value);
+      const paidBy = parseInt($('expense-payer').value, 10);
+      const ctx = $('expense-context').value;
 
-  $('friend-detail-name').textContent = friendName;
+      let groupId = null;
+      let participants = [];
+      let contextError = null;
 
-  $('friend-breakdown-list').innerHTML = breakdown.length ? breakdown.map(b => {
-    const cls = b.amount > 0.01 ? 'positive' : 'negative';
-    const label = b.amount > 0.01 ? `owes ${friendName} ${fmt(b.amount)}` : `${friendName} owes ${fmt(b.amount)}`;
-    return `<li><span class="friend-name">${b.name}</span><span class="balance ${cls}">${label}</span></li>`;
-  }).join('') : '<li class="empty">Settled up with everyone.</li>';
+      if (ctx === 'oneonone') {
+        const a = parseInt($('expense-friend-a').value, 10);
+        const b = parseInt($('expense-friend-b').value, 10);
+        if (!a || !b) contextError = 'Pick both people.';
+        else if (a === b) contextError = 'Pick two different people.';
+        else participants = [a, b];
+      } else if (ctx.startsWith('group:')) {
+        groupId = parseInt(ctx.substring(6), 10);
+        participants = Array.from(document.querySelectorAll('.expense-participant:checked'))
+          .map(cb => parseInt(cb.value, 10));
+      } else {
+        contextError = 'Pick a context first.';
+      }
 
-  $('friend-expenses-list').innerHTML = expenses.length ? expenses.map(e => `<li>
-    <div style="flex: 1;">
-      <div style="font-weight: 600;">${e.description} <span style="font-weight: 400;">— ${fmt(e.amount)}</span></div>
-      <div class="expense-meta">Paid by ${e.paid_by}${e.group_name ? ` · <span class="chip group">${e.group_name}</span>` : ''}</div>
-    </div>
-  </li>`).join('') : '<li class="empty">No activity yet.</li>';
+      return { description, amount, paidBy, groupId, participants, contextError };
+    }
 
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  $('view-friend-detail').classList.add('active');
-}
+    function validateExpenseForm({ description, amount, paidBy, participants, contextError }) {
+      if (contextError) return contextError;
+      if (!description) return 'Description is required.';
+      if (!amount || amount <= 0) return 'Amount must be positive.';
+      if (!paidBy) return 'Pick who paid.';
+      if (!participants.length) return 'Pick at least one participant.';
+      return null;
+    }
 
-    $('expenses-list').addEventListener('click', (event) => {
-      const li = event.target.closest('li[data-expense-id]');
-      if (!li) return;
-      enterEditMode(parseInt(li.dataset.expenseId, 10));
-    });
-
-    $('add-friend-btn').addEventListener('click', async () => {
-      const name = $('friend-name').value.trim();
-      if (!name) return;
-      await invoke('add_friend', { name });
+    function clearAddFriendForm() {
       $('friend-name').value = '';
-      await refreshAll();
-    });
+      $('friend-contact').value = '';
+      $('add-friend-error').textContent = '';
+    }
 
+    function clearCreateGroupForm() {
+      $('group-name').value = '';
+      document.querySelectorAll('.group-member').forEach(cb => {
+        cb.checked = currentUserData && parseInt(cb.value, 10) === currentUserData.id;
+      });
+      $('group-error').textContent = '';
+    }
+
+    // ---- Friends ----
+    $('show-add-friend-btn').addEventListener('click', () => {
+      clearAddFriendForm();
+      showView('view-add-friend');
+      setTimeout(() => $('friend-name').focus(), 50);
+    });
+    $('add-friend-back').addEventListener('click', () => { clearAddFriendForm(); showView('view-friends'); });
+    $('cancel-add-friend-btn').addEventListener('click', () => { clearAddFriendForm(); showView('view-friends'); });
+    $('add-friend-btn').addEventListener('click', async () => {
+      $('add-friend-error').textContent = '';
+      const name = $('friend-name').value.trim();
+      if (!name) { $('add-friend-error').textContent = 'Name is required.'; return; }
+      try {
+        await invoke('add_friend', { name });
+        clearAddFriendForm();
+        await refreshAll();
+        showView('view-friends');
+      } catch (err) { $('add-friend-error').textContent = err; }
+    });
+    $('friends-filter').addEventListener('change', refreshAll);
+    $('friends-list').addEventListener('click', (event) => {
+      const li = event.target.closest('li[data-friend-id]');
+      if (!li) return;
+      openFriendDetail(parseInt(li.dataset.friendId, 10), li.dataset.friendName);
+    });
+    $('friend-detail-back').addEventListener('click', () => showView('view-friends'));
+
+    // ---- Groups ----
+    $('show-add-group-btn').addEventListener('click', () => {
+      clearCreateGroupForm();
+      showView('view-add-group');
+      setTimeout(() => $('group-name').focus(), 50);
+    });
+    $('add-group-back').addEventListener('click', () => { clearCreateGroupForm(); showView('view-groups'); });
+    $('cancel-create-group-btn').addEventListener('click', () => { clearCreateGroupForm(); showView('view-groups'); });
     $('create-group-btn').addEventListener('click', async () => {
       $('group-error').textContent = '';
       const name = $('group-name').value.trim();
@@ -470,89 +1021,126 @@
         .map(cb => parseInt(cb.value, 10));
       try {
         await invoke('create_group', { name, memberIds });
-        $('group-name').value = '';
-        document.querySelectorAll('.group-member').forEach(cb => cb.checked = false);
+        clearCreateGroupForm();
         await refreshAll();
-      } catch (err) {
-        $('group-error').textContent = err;
-      }
+        showView('view-groups');
+      } catch (err) { $('group-error').textContent = err; }
+    });
+    $('groups-filter').addEventListener('change', refreshAll);
+    $('groups-list').addEventListener('click', (event) => {
+      const li = event.target.closest('li[data-group-id]');
+      if (!li) return;
+      openGroupDetail(
+        parseInt(li.dataset.groupId, 10),
+        li.dataset.groupName,
+        JSON.parse(li.dataset.memberNames),
+        JSON.parse(li.dataset.memberIds),
+      );
+    });
+    $('group-detail-back').addEventListener('click', () => showView('view-groups'));
+
+    $('group-members-list').addEventListener('click', async (event) => {
+      const btn = event.target.closest('.member-remove-btn');
+      if (!btn || currentGroupId === null) return;
+      const userId = parseInt(btn.dataset.memberId, 10);
+      if (currentGroupMemberIds.length <= 1) return;
+      try {
+        await invoke('remove_member_from_group', { groupId: currentGroupId, userId });
+        await refreshGroupDetail();
+      } catch (err) { console.error(err); }
     });
 
-    $('friends-list').addEventListener('click', (event) => {
-  const li = event.target.closest('li[data-friend-id]');
-  if (!li) return;
-  openFriendDetail(parseInt(li.dataset.friendId, 10), li.dataset.friendName);
-});
-
-$('friend-detail-back').addEventListener('click', () => {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  $('view-friends').classList.add('active');
-});
-
-$('groups-list').addEventListener('click', (event) => {
-  const li = event.target.closest('li[data-group-id]');
-  if (!li) return;
-  openGroupDetail(
-    parseInt(li.dataset.groupId, 10),
-    li.dataset.groupName,
-    JSON.parse(li.dataset.memberNames),
-    JSON.parse(li.dataset.memberIds),
-  );
-});
-
-$('group-detail-back').addEventListener('click', () => {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  $('view-groups').classList.add('active');
-});
-
-$('group-simplify-btn').addEventListener('click', async () => {
-  if (currentGroupId === null) return;
-  const settlements = await invoke('simplify_group', { groupId: currentGroupId });
-  $('group-settlements').innerHTML = settlements.length
-    ? `<table style="margin-top: 12px;"><thead><tr><th>From</th><th>To</th><th style="text-align:right">Amount</th></tr></thead>
-       <tbody>${settlements.map(s => `<tr>
-         <td>${s.from}</td><td>${s.to}</td>
-         <td style="text-align:right">${fmt(s.amount)}</td></tr>`).join('')}</tbody></table>`
-    : '<p class="empty">Everyone is settled up.</p>';
-});
-
-$('group-add-expense-btn').addEventListener('click', () => {
-  if (currentGroupId === null) return;
-  // Switch to Activity tab
-  document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelector('.tab-bar button[data-view="activity"]').classList.add('active');
-  $('view-activity').classList.add('active');
-  // Reset form to "Add new" mode (in case it was in edit mode)
-  exitEditMode();
-  // Pre-select the group
-  $('expense-group').value = String(currentGroupId);
-  // Pre-check only group members as participants
-  const memberSet = new Set(currentGroupMemberIds);
-  document.querySelectorAll('.expense-participant').forEach(cb => {
-    cb.checked = memberSet.has(parseInt(cb.value, 10));
-  });
-  // Focus description
-  setTimeout(() => $('expense-desc').focus(), 50);
-});
-
-    function readExpenseForm() {
-      const description = $('expense-desc').value.trim();
-      const amount = parseFloat($('expense-amount').value);
-      const paidBy = parseInt($('expense-payer').value, 10);
-      const groupVal = $('expense-group').value;
-      const groupId = groupVal ? parseInt(groupVal, 10) : null;
-      const participants = Array.from(document.querySelectorAll('.expense-participant:checked'))
-        .map(cb => parseInt(cb.value, 10));
-      return { description, amount, paidBy, groupId, participants };
-    }
-
-    function validateExpenseForm({ description, amount, paidBy, participants }) {
-      if (!description || !amount || !paidBy || !participants.length) {
-        return 'Fill in all fields and select at least one participant.';
+    $('show-add-members-btn').addEventListener('click', async () => {
+      const memberSet = new Set(currentGroupMemberIds);
+      const candidates = getAllUsers().filter(f => !memberSet.has(f.id));
+      if (!candidates.length) {
+        $('add-members-list').innerHTML = '<span class="empty">Everyone is already in this group.</span>';
+        $('confirm-add-members-btn').classList.add('hidden');
+      } else {
+        $('add-members-list').innerHTML = candidates.map(f =>
+          `<label><input type="checkbox" class="add-member-cb" value="${f.id}" /> ${labelFor(f.name, f.id)}</label>`
+        ).join('');
+        $('confirm-add-members-btn').classList.remove('hidden');
       }
-      return null;
-    }
+      $('show-add-members-btn').classList.add('hidden');
+      $('add-members-form').classList.remove('hidden');
+    });
+    $('cancel-add-members-btn').addEventListener('click', () => {
+      $('show-add-members-btn').classList.remove('hidden');
+      $('add-members-form').classList.add('hidden');
+    });
+    $('confirm-add-members-btn').addEventListener('click', async () => {
+      if (currentGroupId === null) return;
+      const memberIds = Array.from(document.querySelectorAll('.add-member-cb:checked'))
+        .map(cb => parseInt(cb.value, 10));
+      if (!memberIds.length) return;
+      try {
+        await invoke('add_members_to_group', { groupId: currentGroupId, memberIds });
+        await refreshGroupDetail();
+      } catch (err) { console.error(err); }
+    });
+
+    $('delete-group-btn').addEventListener('click', () => {
+      $('delete-group-btn').classList.add('hidden');
+      $('delete-group-confirm').classList.remove('hidden');
+    });
+    $('cancel-delete-group-btn').addEventListener('click', () => {
+      $('delete-group-btn').classList.remove('hidden');
+      $('delete-group-confirm').classList.add('hidden');
+    });
+    $('confirm-delete-group-btn').addEventListener('click', async () => {
+      if (currentGroupId === null) return;
+      try {
+        await invoke('delete_group', { groupId: currentGroupId });
+        currentGroupId = null;
+        await refreshAll();
+        showView('view-groups');
+      } catch (err) { console.error(err); }
+    });
+
+    $('group-simplify-btn').addEventListener('click', async () => {
+      if (currentGroupId === null) return;
+      const settlements = await invoke('simplify_group', { groupId: currentGroupId });
+      $('group-settlements').innerHTML = settlements.length
+        ? `<table style="margin-top: 12px;"><thead><tr><th>From</th><th>To</th><th style="text-align:right">Amount</th></tr></thead>
+           <tbody>${settlements.map(s => `<tr>
+             <td>${s.from}</td><td>${s.to}</td>
+             <td style="text-align:right">${fmt(s.amount)}</td></tr>`).join('')}</tbody></table>`
+        : '<p class="empty">Everyone is settled up.</p>';
+    });
+
+    $('group-add-expense-btn').addEventListener('click', () => {
+      if (currentGroupId === null) return;
+      openAddExpense('view-group-detail', currentGroupId);
+    });
+
+    // ---- Activity + expense form ----
+    $('expenses-list').addEventListener('click', (event) => {
+      const li = event.target.closest('li[data-expense-id]');
+      if (!li) return;
+      openEditExpense(parseInt(li.dataset.expenseId, 10), 'view-activity');
+    });
+
+    $('expense-context').addEventListener('change', () => applyExpenseContext(false));
+
+    $('expense-friend-a').addEventListener('change', () => {
+      if ($('expense-friend-b').value === $('expense-friend-a').value) {
+        const others = getAllUsers().filter(f => String(f.id) !== $('expense-friend-a').value);
+        if (others.length) $('expense-friend-b').value = String(others[0].id);
+      }
+      updateOneOnOnePayer(false);
+    });
+    $('expense-friend-b').addEventListener('change', () => {
+      if ($('expense-friend-a').value === $('expense-friend-b').value) {
+        const others = getAllUsers().filter(f => String(f.id) !== $('expense-friend-b').value);
+        if (others.length) $('expense-friend-a').value = String(others[0].id);
+      }
+      updateOneOnOnePayer(false);
+    });
+
+    $('add-expense-back').addEventListener('click', returnFromExpenseForm);
+    $('cancel-add-expense-btn').addEventListener('click', returnFromExpenseForm);
+    $('cancel-edit-btn').addEventListener('click', returnFromExpenseForm);
 
     $('add-expense-btn').addEventListener('click', async () => {
       $('expense-error').textContent = '';
@@ -561,12 +1149,8 @@ $('group-add-expense-btn').addEventListener('click', () => {
       if (err) { $('expense-error').textContent = err; return; }
       try {
         await invoke('add_expense', f);
-        $('expense-desc').value = '';
-        $('expense-amount').value = '';
-        await refreshAll();
-      } catch (e) {
-        $('expense-error').textContent = e;
-      }
+        await returnFromExpenseForm();
+      } catch (e) { $('expense-error').textContent = e; }
     });
 
     $('save-expense-btn').addEventListener('click', async () => {
@@ -577,37 +1161,42 @@ $('group-add-expense-btn').addEventListener('click', () => {
       if (err) { $('expense-error').textContent = err; return; }
       try {
         await invoke('update_expense', { id: editingId, ...f });
-        exitEditMode();
+        await returnFromExpenseForm();
+      } catch (e) { $('expense-error').textContent = e; }
+    });
+
+    $('delete-expense-btn').addEventListener('click', async () => {
+      if (editingId === null) return;
+      try {
+        await invoke('delete_expense', { id: editingId });
+        await returnFromExpenseForm();
+      } catch (e) { $('expense-error').textContent = e; }
+    });
+
+    // ---- Account ----
+    $('account-set-me-btn').addEventListener('click', async () => {
+      $('account-error').textContent = '';
+      const userId = parseInt($('account-user-select').value, 10);
+      if (!userId) { $('account-error').textContent = 'Pick a person.'; return; }
+      try {
+        await invoke('set_current_user', { userId });
         await refreshAll();
-      } catch (e) {
-        $('expense-error').textContent = e;
-      }
+      } catch (err) { $('account-error').textContent = err; }
+    });
+    $('account-clear-me-btn').addEventListener('click', async () => {
+      try {
+        await invoke('clear_current_user');
+        await refreshAll();
+      } catch (err) { $('account-error').textContent = err; }
     });
 
-  $('delete-expense-btn').addEventListener('click', async () => {
-  if (editingId === null) return;
-  try {
-    await invoke('delete_expense', { id: editingId });
-    exitEditMode();
-    await refreshAll();
-  } catch (e) {
-    $('expense-error').textContent = e;
-  }
-});
-
-    $('cancel-edit-btn').addEventListener('click', exitEditMode);
-
-    $('simplify-btn').addEventListener('click', async () => {
-      const settlements = await invoke('simplify');
-      $('settlements').innerHTML = settlements.length
-        ? `<table style="margin-top: 12px;"><thead><tr><th>From</th><th>To</th><th style="text-align:right">Amount</th></tr></thead>
-           <tbody>${settlements.map(s => `<tr>
-             <td>${s.from}</td><td>${s.to}</td>
-             <td style="text-align:right">${fmt(s.amount)}</td></tr>`).join('')}</tbody></table>`
-        : '<p class="empty">Everyone is settled up.</p>';
+    // ---- FAB ----
+    $('fab-add-expense').addEventListener('click', () => {
+      const activeView = document.querySelector('.view.active');
+      openAddExpense(activeView?.id || 'view-activity');
     });
 
-    refreshAll();
+    refreshAll().then(updateFabVisibility);
   </script>
 </body>
 </html>
