@@ -32,11 +32,11 @@ pub fn apply_payments(balances: &mut HashMap<UserId, f64>, payments: &[Payment])
         let amount = payment.amount();
 
         balances.entry(from)
-            .and_modify(|v| *v -= amount)
+            .and_modify(|v| *v += amount)
             .or_insert(-amount);
 
         balances.entry(to)
-            .and_modify(|v| *v += amount)
+            .and_modify(|v| *v -= amount)
             .or_insert(amount);
     }
 }
@@ -47,25 +47,31 @@ pub fn balances_with_payments(expenses: &[Expense], payments: &[Payment]) -> Has
     balances
 }
 
-pub fn pairwise_balances(balances: &HashMap<UserId, f64>) -> Vec<(UserId, UserId, f64)> {
-    let mut pairs = Vec::new();
-    let users: Vec<_> = balances.keys().cloned().collect();
+pub fn pairwise_balances(expenses: &[Expense], payments: &[Payment], my_id: UserId) -> HashMap<UserId, f64> {
+    let mut result: HashMap<UserId, f64> = HashMap::new();
 
-    for i in 0..users.len() {
-        for j in (i + 1)..users.len() {
-            let user_i = users[i];
-            let user_j = users[j];
-            let balance_i = balances.get(&user_i).copied().unwrap_or(0.0);
-            let balance_j = balances.get(&user_j).copied().unwrap_or(0.0);
-            let net_balance = balance_i - balance_j;
+    for expense in expenses {
+        let shares = expense.shares();
+        let paid_by = expense.paid_by();
 
-            if net_balance.abs() > 0.005 {
-                pairs.push((user_i, user_j, net_balance));
+        if paid_by == my_id {
+            for (p_id, share) in &shares {
+                if *p_id == my_id {continue;}
+                *result.entry(*p_id).or_insert(0.0) += share;
             }
+
+        } else if let Some((_, my_share)) = shares.iter().find(|(p_id, _)| *p_id == my_id) {
+            *result.entry(paid_by).or_insert(0.0) -= my_share;
         }
     }
-
-    pairs
+    for payment in payments {
+        if payment.from_id() == my_id {
+            *result.entry(payment.to_id()).or_insert(0.0) += payment.amount();
+        } else if payment.to_id() == my_id {
+            *result.entry(payment.from_id()).or_insert(0.0) -= payment.amount();
+        }
+    }
+    result
 }
 
 #[cfg(test)]
@@ -138,20 +144,6 @@ mod tests {
     }
 
     #[test]
-    fn test_pairwise_balances() {
-        let balances = HashMap::from([
-            (1, 60.0),
-            (2, -30.0),
-            (3, -30.0)
-        ]);
-
-        let pairs = pairwise_balances(&balances);
-
-        assert_eq!(pairs.len(), 2);
-        assert!(pairs.contains(&(1, 2, 90.0)));
-        assert!(pairs.contains(&(1, 3, 90.0)));
-    }
-    #[test]
     fn test_apply_payments_basic() {
         let mut balances: HashMap<UserId, f64> = HashMap::new();
         balances.insert(1, -30.0); 
@@ -161,6 +153,7 @@ mod tests {
         assert_eq!(balances.get(&1), Some(&0.0));
         assert_eq!(balances.get(&2), Some(&0.0));
     }
+
     #[test]
     fn test_balances_with_payments_clears_debt() {
         let expense = Expense::new(1, "Večerja", 60.0, 2, None,
@@ -186,18 +179,38 @@ mod tests {
         let expense = Expense::new(1, "Večerja", 60.0, 2, None,
             Split::new_equal(vec![1, 2]).unwrap());
         let payment = Payment::new(1, 1, 2, 30.0, None).unwrap();
-        let pairwise = pairwise_balances(&balances_with_payments(&[expense], &[payment]));
-        assert!(pairwise.is_empty());
+        let pairwise = pairwise_balances(&[expense], &[payment], 1);
+        let owed = pairwise.get(&2).cloned().unwrap_or(0.0);
+        assert_eq!(owed, 0.0);
     }
 
     #[test]
     fn test_pairwise_balances_respects_exact_split() {
         let expense = Expense::new(1, "Nakup", 100.0, 1, None,
             Split::new_exact(vec![(1, 10.0), (2, 40.0), (3, 50.0)]).unwrap());
-        let pairwise = pairwise_balances(&calculate_balances(&[expense]));
-        assert!(pairwise.contains(&(1, 2, 50.0)));
-        assert!(pairwise.contains(&(1, 3, 60.0)));
-        assert!(pairwise.contains(&(2, 3, 10.0)));
+        let pairwise = pairwise_balances(&[expense], &[], 1);
+        let owed_by_2 = pairwise.get(&2).cloned().unwrap_or(0.0);
+        let owed_by_3 = pairwise.get(&3).cloned().unwrap_or(0.0);
+        assert_eq!(owed_by_2, 40.0);
+        assert_eq!(owed_by_3, 50.0);
+    }
+
+    #[test]
+    fn test_pairwise_balances_from_payer() {
+        let expense = Expense::new(1, "Večerja", 60.0, 2, None,
+            Split::new_equal(vec![1, 2]).unwrap());
+        let pairwise = pairwise_balances(&[expense], &[], 2);
+        let owed_by_1 = pairwise.get(&1).cloned().unwrap_or(0.0);
+        assert_eq!(owed_by_1, 30.0);
+    }
+
+    #[test]
+    fn test_pairwise_balances_from_participant() {
+        let expense = Expense::new(1, "Večerja", 60.0, 2, None,
+            Split::new_equal(vec![1, 2]).unwrap());
+        let pairwise = pairwise_balances(&[expense], &[], 1);
+        let owed_to_2 = pairwise.get(&2).cloned().unwrap_or(0.0);
+        assert_eq!(owed_to_2, -30.0);
     }
 
 }
