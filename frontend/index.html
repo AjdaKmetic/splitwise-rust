@@ -1129,7 +1129,16 @@
       }
       filteredGroups.sort((a, b) => a.name.localeCompare(b.name));
 
-      $('groups-list').innerHTML = filteredGroups.length ? filteredGroups.map(g => `<li
+      $('groups-list').innerHTML = filteredGroups.length ? filteredGroups.map(g => {
+        const myBal = g.my_balance || 0;
+        let rightHtml;
+        if (currentUserData) {
+          const cls = myBal > 0.01 ? 'positive' : myBal < -0.01 ? 'negative' : 'zero';
+          rightHtml = `<span class="balance ${cls}">${fmt(myBal)}</span>`;
+        } else {
+          rightHtml = `<span class="chevron">›</span>`;
+        }
+        return `<li
         class="group-row"
         data-group-id="${g.id}"
         data-group-name="${g.name}"
@@ -1141,8 +1150,8 @@
           <div class="friend-name">${g.name}</div>
           <div class="group-meta">${g.members.join(', ')} · ${g.expense_count} expense${g.expense_count === 1 ? '' : 's'}</div>
         </div>
-        <span class="chevron">›</span>
-      </li>`).join('') : `<li class="empty">${groupsEmptyMsg}</li>`;
+        ${rightHtml}
+      </li>`}).join('') : `<li class="empty">${groupsEmptyMsg}</li>`;
 
       // Group creation members
       const allForGroup = getAllUsers();

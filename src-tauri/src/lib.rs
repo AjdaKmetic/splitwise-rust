@@ -43,6 +43,7 @@ struct GroupDto {
     members: Vec<String>,
     expense_count: usize,
     has_outstanding: bool,
+    my_balance: f64,
 }
 
 #[derive(Serialize)]
@@ -208,7 +209,7 @@ fn create_group(name: String, member_ids: Vec<u64>, state: State<AppState>) -> R
     }
     data.groups.push(group);
     let members: Vec<String> = member_ids.iter().map(|id| name_of(&data, *id)).collect();
-    Ok(GroupDto { id, name, member_ids, members, expense_count: 0, has_outstanding: false })
+    Ok(GroupDto { id, name, member_ids, members, expense_count: 0, has_outstanding: false, my_balance: 0.0 })
 }
 
 #[tauri::command]
@@ -225,6 +226,10 @@ fn list_groups(state: State<AppState>) -> Vec<GroupDto> {
             .collect();
         let balances = balances_with_payments(&group_expenses, &group_payments);
         let has_outstanding = balances.values().any(|&v| v.abs() > 0.01);
+        let my_balance = match data.current_user_id {
+            Some(my_id) => balances.get(&my_id).copied().unwrap_or(0.0),
+            None => 0.0,
+        };
         let member_ids: Vec<u64> = g.members().to_vec();
         let members = member_ids.iter().map(|&id| name_of(&data, id)).collect();
         GroupDto {
@@ -234,6 +239,7 @@ fn list_groups(state: State<AppState>) -> Vec<GroupDto> {
             members,
             expense_count: group_expenses.len(),
             has_outstanding,
+            my_balance,
         }
     }).collect()
 }
