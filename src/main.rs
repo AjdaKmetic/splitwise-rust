@@ -1,16 +1,24 @@
+use sea_orm::{EntityTrait};
+
 use settlemate_rust::{
-    models::expense::Expense,
-    models::group::Group,
-    services::split::Split,
-    models::user::{User},
+    // models::expense::Expense,
+    // models::group::Group,
+    // services::split::Split,
+    // models::user::{User},
     database::connect,
+    entities::users,
+    services::user_service::create_user,
 };
 
 #[tokio::main]
 async fn main() {
+
+    /*
     let janez = User::new(1, "Janez Novak", "janeznovak@example.com");
     let marija = User::new(2, "Marija Novak", "marijanovak@example.com");
+
     let mut group = Group::new(1, "Amsterdam");
+
     group.add_member(janez.id);
     group.add_member(marija.id);
 
@@ -33,16 +41,53 @@ async fn main() {
         ),
     ];
 
-    let balances = settlemate_rust::services::balance::Balance::calculate_balances(&expenses);
+    let balances =
+        settlemate_rust::services::balance::Balance::calculate_balances(&expenses);
+
     println!("Balances: {:?}", balances);
 
-    let transactions = settlemate_rust::services::simplify::simplify_debts(&balances);
+    let transactions =
+        settlemate_rust::services::simplify::simplify_debts(&balances);
+
     println!("Simplified Transactions: {:?}", transactions);
+    */
 
-    let db = connect().await;
+    let db = connect()
+        .await
+        .expect("Povezava z bazo ni uspela");
 
-    match db {
-        Ok(_) => println!("Povezava z bazo deluje."),
-        Err(error) => println!("Napaka pri povezavi z bazo: {:?}", error),
+    println!("Povezava z bazo deluje.");
+
+/*    let new_user = users::ActiveModel {
+        name: Set("Janez Novak".to_string()),
+        email: Set("janez@example.com".to_string()),
+        ..Default::default()
+    };
+
+    let result = new_user
+        .insert(&db)
+        .await
+        .expect("Dodajanje uporabnika ni uspelo");
+
+    println!("Dodan uporabnik: {:?}", result);
+*/
+
+    let result = create_user(
+        &db,
+        "Janez Novak",
+        "janez@example.com",
+    )
+    .await
+    .expect("Dodajanje uporabnika ni uspelo");
+
+    let all_users = users::Entity::find()
+        .all(&db)
+        .await
+        .expect("Branje uporabnikov ni uspelo");
+
+    println!("Vsi uporabniki v bazi:");
+    for user in all_users {
+        println!("{} - {} ({})", user.id, user.name, user.email);
     }
+
 }
