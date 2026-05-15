@@ -92,12 +92,15 @@
 
     /* Hero balance card on Friends view */
     .hero-balance {
-      background: var(--coral);
       border-radius: var(--radius-xl);
       padding: 20px;
       margin-bottom: 14px;
-      color: white;
     }
+    
+    .hero-balance.positive { background: var(--mint-bg); color: var(--mint-text); }
+    .hero-balance.negative { background: var(--coral-soft); color: var(--coral-text); }
+    .hero-balance.zero { background: var(--amber-bg); color: var(--amber-text); }
+
     .hero-balance .hero-label {
       font-size: 12px;
       font-weight: 600;
@@ -126,7 +129,7 @@
       display: inline-block;
     }
     .hero-dot.get { background: var(--mint); }
-    .hero-dot.owe { background: #FFE66D; }
+    .hero-dot.owe { background: var(--coral); }
 
     /* Inputs */
     input, select, textarea {
@@ -224,8 +227,8 @@
       white-space: nowrap;
     }
     .balance.positive { background: var(--mint-bg); color: var(--mint-text); }
-    .balance.negative { background: var(--amber-bg); color: var(--amber-text); }
-    .balance.zero { background: var(--neutral-bg); color: var(--neutral-text); }
+    .balance.negative { background: var(--coral-soft); color: var(--coral-text); }
+    .balance.zero { background: var(--amber-bg); color: var(--amber-text); }
 
     .group-meta, .expense-meta {
       font-size: 12px;
@@ -855,7 +858,6 @@
       btn.addEventListener('click', () => switchToTab(btn.dataset.view));
     });
 
-    // Filter pills wiring (replaces native selects visually; hidden selects keep the value for refreshAll)
     function wireFilterPills(pillsContainerId, hiddenSelectId) {
       document.querySelectorAll(`#${pillsContainerId} button`).forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1023,6 +1025,8 @@
     }
 
     function updateFriendsHero(friends) {
+      const hero = $('friends-hero');
+
       if (!currentUserData) {
         $('friends-hero').classList.add('hidden');
         return;
@@ -1034,14 +1038,19 @@
         else if (f.balance < -0.01) youOwe += -f.balance;
       }
       const net = owedToYou - youOwe;
-      $('friends-hero').classList.remove('hidden');
+
+      hero.classList.remove('hidden','positive', 'negative', 'zero');
+
       if (Math.abs(net) < 0.01) {
+        hero.classList.add('zero');
         $('friends-hero-label').textContent = 'all settled up';
         $('friends-hero-amount').textContent = '€0.00';
       } else if (net > 0) {
+        hero.classList.add('positive');
         $('friends-hero-label').textContent = 'overall, you are owed';
         $('friends-hero-amount').textContent = fmt(net);
       } else {
+        hero.classList.add('negative');
         $('friends-hero-label').textContent = 'overall, you owe';
         $('friends-hero-amount').textContent = fmt(net);
       }

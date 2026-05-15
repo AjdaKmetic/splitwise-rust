@@ -418,12 +418,9 @@ fn record_payment(
         return Err("Sender and recipient must be different".to_string());
     }
 
-    // Build (group_id, amount) allocations to record as Payment entries
     let allocations: Vec<(Option<u64>, f64)> = if group_id.is_some() {
-        // Explicit group: record as a single payment
         vec![(group_id, amount)]
     } else {
-        // Auto-distribute pro-rata across contexts where from_id owes to_id
         let pair_groups: Vec<u64> = data.groups.iter()
             .filter(|g| g.members().contains(&from_id) && g.members().contains(&to_id))
             .map(|g| g.id)
@@ -443,7 +440,6 @@ fn record_payment(
         }
 
         if contexts.is_empty() {
-            // No outstanding from→to debt; record as untagged
             vec![(None, amount)]
         } else {
             let total_debt: f64 = contexts.iter().map(|(_, d)| d).sum();
@@ -457,7 +453,6 @@ fn record_payment(
                 })
                 .collect();
 
-            // Absorb rounding drift into the last allocation
             let allocated_sum: f64 = allocs.iter().map(|(_, a)| a).sum();
             let drift = to_distribute - allocated_sum;
             if !allocs.is_empty() && drift.abs() > 0.001 {
@@ -465,7 +460,6 @@ fn record_payment(
                 allocs[last_idx].1 = ((allocs[last_idx].1 + drift) * 100.0).round() / 100.0;
             }
 
-            // Any overpayment goes to the untagged bucket
             if remainder > 0.001 {
                 if let Some(idx) = allocs.iter().position(|(g, _)| g.is_none()) {
                     allocs[idx].1 = ((allocs[idx].1 + remainder) * 100.0).round() / 100.0;
@@ -478,7 +472,6 @@ fn record_payment(
         }
     };
 
-    // Create the payment records
     for (gid, alloc_amount) in allocations {
         if alloc_amount < 0.01 { continue; }
         data.next_payment_id += 1;
