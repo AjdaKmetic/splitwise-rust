@@ -3,9 +3,11 @@ use settlemate_rust::{
     models::group::Group,
     services::split::Split,
     models::user::{User},
+    database::connect,
 };
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let janez = User::new(1, "Janez Novak", "janeznovak@example.com");
     let marija = User::new(2, "Marija Novak", "marijanovak@example.com");
     let mut group = Group::new(1, "Amsterdam");
@@ -36,4 +38,11 @@ fn main() {
 
     let transactions = settlemate_rust::services::simplify::simplify_debts(&balances);
     println!("Simplified Transactions: {:?}", transactions);
+
+    let db = connect().await;
+
+    match db {
+        Ok(_) => println!("Povezava z bazo deluje."),
+        Err(error) => println!("Napaka pri povezavi z bazo: {:?}", error),
+    }
 }
