@@ -29,6 +29,10 @@ impl Balance {
         self.balances.iter()
     }
 
+    pub fn values(&self) -> impl Iterator<Item = &f64> {
+        self.balances.values()
+    }
+
     pub fn calculate_balances(expenses: &[Expense]) -> Self {
         let mut balances: HashMap<UserId, f64> = HashMap::new();
 
