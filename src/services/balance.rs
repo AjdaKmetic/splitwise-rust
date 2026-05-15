@@ -2,8 +2,10 @@ use std::collections::HashMap;
 use crate::models::{
     expense::Expense,
     payment::Payment,
-    user::UserId
+    user::UserId,
+    group::GroupId,
 };
+use crate::services::split::Split;
 
 pub fn calculate_balances(expenses: &[Expense]) -> HashMap<UserId, f64> {
     let mut balances: HashMap<UserId, f64> = HashMap::new();
@@ -72,6 +74,52 @@ pub fn pairwise_balances(expenses: &[Expense], payments: &[Payment], my_id: User
         }
     }
     result
+}
+
+pub fn pair_debt_in_context(expenses: &[Expense], payments: &[Payment], from_id: UserId, to_id: UserId, group_filter: Option<GroupId>) -> f64 {
+    let mut debt = 0.0;
+    for expense in expenses {
+        if expense.group_id() != group_filter {
+            continue;
+        }
+        let amount = expense.amount();
+        let paid_by = expense.paid_by();
+        let shares: Vec<(UserId, f64)> = match expense.splits() {
+            Split::Equal(user_ids) => {
+                if user_ids.is_empty() {
+                    continue;
+                }
+                let share = amount / user_ids.len() as f64;
+                user_ids.iter().map(|&user_id| (user_id, share)).collect()
+            }
+            Split::Exact(pairs) => pairs.iter().cloned().collect(),
+        };
+
+        let from_share = shares.iter().find(|(p_id, _)| *p_id == from_id).map(|(_, share)| *share);
+        let to_share = shares.iter().find(|(p_id, _)| *p_id == to_id).map(|(_, share)| *share);
+
+        if paid_by == from_id {
+            if let Some(to_s) = to_share {
+                debt -= to_s;
+            }
+        } else if paid_by == to_id {
+            if let Some(from_s) = from_share {
+                debt += from_s;
+            }
+        }
+
+    }
+for payment in payments {
+        if payment.group_id() != group_filter {
+            continue;
+        }
+        if payment.from_id() == from_id && payment.to_id() == to_id {
+            debt += payment.amount();
+        } else if payment.from_id() == to_id && payment.to_id() == from_id {
+            debt -= payment.amount();
+        }
+    }
+    debt
 }
 
 #[cfg(test)]
@@ -212,5 +260,24 @@ mod tests {
         let owed_to_2 = pairwise.get(&2).cloned().unwrap_or(0.0);
         assert_eq!(owed_to_2, -30.0);
     }
+
+    #[test]
+    fn group_filter_isolates_contexts() {
+        let expense1 = Expense::new(1, "Večerja", 20.0, 2, Some(5),
+            Split::new_equal(vec![1, 2]).unwrap());
+        let expense2 = Expense::new(2, "Kosilo", 30.0, 2, None,
+            Split::new_equal(vec![1, 2]).unwrap());
+        let expenses = vec![expense1, expense2];
+
+        let in_group_5 = pair_debt_in_context(&expenses, &[], 1, 2, Some(5));
+        assert!((in_group_5 - 10.0).abs() < 1e-9);
+
+        let untagged = pair_debt_in_context(&expenses, &[], 1, 2, None);
+        assert!((untagged - 15.0).abs() < 1e-9);
+
+        let other_group = pair_debt_in_context(&expenses, &[], 1, 2, Some(99));
+        assert_eq!(other_group, 0.0);
+    }
+
 
 }

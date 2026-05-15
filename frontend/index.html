@@ -5,11 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>SettleMate</title>
   <style>
+    :root {
+      --bg: #FFF8F0;
+      --surface: #FFFFFF;
+      --surface-soft: #FAF3E8;
+      --text: #2C2C2A;
+      --text-soft: #6B6862;
+      --text-muted: #A8A39A;
+      --border: #ECE3D4;
+      --border-soft: #F1EADD;
+
+      --coral: #FF6B6B;
+      --coral-deep: #E54E4E;
+      --coral-soft: #FFE6E6;
+      --coral-text: #993C1D;
+
+      --mint: #4ECDC4;
+      --mint-bg: #DFF5EF;
+      --mint-text: #0F6E56;
+
+      --amber-bg: #FAEEDA;
+      --amber-text: #854F0B;
+
+      --lavender: #C5B3E6;
+      --pink: #F4C0D1;
+      --pink-text: #72243E;
+
+      --neutral-bg: #F1EDE4;
+      --neutral-text: #5F5E5A;
+
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 24px;
+      --radius-pill: 999px;
+    }
+
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body {
       margin: 0; padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      color: #1c1c1e; background: #f2f2f7;
+      font-family: ui-rounded, -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Avenir Next", system-ui, sans-serif;
+      color: var(--text); background: var(--bg);
       -webkit-text-size-adjust: 100%;
     }
     body {
@@ -19,140 +55,371 @@
       min-height: 100vh;
     }
     main {
-      padding: 16px;
-      padding-bottom: calc(84px + env(safe-area-inset-bottom));
+      padding: 12px 16px;
+      padding-bottom: calc(96px + env(safe-area-inset-bottom));
     }
 
     .view { display: none; }
     .view.active { display: block; }
     .hidden { display: none !important; }
 
-    h1 { font-size: 28px; font-weight: 700; margin: 8px 0 20px; }
-    h2 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
-    h3 { font-size: 15px; font-weight: 600; margin: 16px 0 8px; color: #3c3c43; }
+    h1 {
+      font-size: 28px; font-weight: 600;
+      margin: 8px 0 16px;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+    h2 {
+      font-size: 17px; font-weight: 600;
+      margin: 0 0 12px;
+      letter-spacing: -0.2px;
+      color: var(--text);
+    }
+    h3 {
+      font-size: 14px; font-weight: 600;
+      margin: 16px 0 8px;
+      color: var(--text-soft);
+    }
 
     .card {
-      background: white; border-radius: 12px;
-      padding: 16px; margin-bottom: 12px;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
     }
 
-    input, select, button, textarea {
+    .card.flush { padding: 8px 0; }
+
+    /* Hero balance card on Friends view */
+    .hero-balance {
+      background: var(--coral);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+      margin-bottom: 14px;
+      color: white;
+    }
+    .hero-balance .hero-label {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.88;
+      letter-spacing: 0.3px;
+    }
+    .hero-balance .hero-amount {
+      font-size: 38px;
+      font-weight: 600;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-top: 4px;
+    }
+    .hero-breakdown {
+      display: flex; gap: 18px;
+      margin-top: 12px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .hero-breakdown span {
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .hero-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .hero-dot.get { background: var(--mint); }
+    .hero-dot.owe { background: #FFE66D; }
+
+    /* Inputs */
+    input, select, textarea {
       font-family: inherit; font-size: 16px;
-      padding: 10px 12px; border-radius: 8px;
-      border: 1px solid #d1d1d6; background: white;
-      width: 100%; min-height: 44px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      width: 100%; min-height: 48px;
+      color: var(--text);
+      transition: border-color 0.15s;
     }
-    button {
-      background: #007aff; color: white; border: 0;
-      font-weight: 600; cursor: pointer;
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--coral);
     }
-    button.secondary { background: #e5e5ea; color: #1c1c1e; }
-    button.danger { background: #ff3b30; color: white; }
-    button:active { opacity: 0.7; }
 
-    .form-row { margin-bottom: 10px; }
+    /* Buttons */
+    button {
+      font-family: inherit; font-size: 16px;
+      padding: 13px 16px;
+      border-radius: var(--radius-md);
+      border: 0;
+      background: var(--coral);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%; min-height: 48px;
+      transition: transform 0.1s, opacity 0.1s;
+    }
+    button:active { transform: scale(0.98); opacity: 0.85; }
+    button.secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+    button.danger { background: #E63946; color: white; }
+    button.settle-up { background: var(--mint); color: white; }
+
+    .form-row { margin-bottom: 12px; }
     .form-row.inline { display: flex; gap: 8px; }
     .form-row.inline input { flex: 1; }
-    .form-row.inline button { width: auto; padding: 10px 18px; flex-shrink: 0; }
-    label { font-size: 13px; font-weight: 500; color: #3c3c43; display: block; margin-bottom: 4px; }
+    .form-row.inline button { width: auto; padding: 12px 18px; flex-shrink: 0; }
+    label {
+      font-size: 13px; font-weight: 600;
+      color: var(--text-soft);
+      display: block; margin-bottom: 6px;
+      letter-spacing: 0.1px;
+    }
 
-    .button-stack { display: flex; flex-direction: column; gap: 8px; }
+    .button-stack { display: flex; flex-direction: column; gap: 10px; }
 
+    /* Lists */
     ul.list { list-style: none; padding: 0; margin: 0; }
     ul.list li {
-      padding: 12px 0;
-      border-bottom: 1px solid #f2f2f7;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      background: var(--surface);
+      border-radius: var(--radius-md);
       display: flex; justify-content: space-between; align-items: center;
+      gap: 12px;
     }
-    ul.list li:last-child { border-bottom: 0; }
+    ul.list li:last-child { margin-bottom: 0; }
+    ul.list li.empty {
+      background: transparent;
+      justify-content: center;
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 14px;
+      padding: 24px 12px;
+    }
 
-    .friend-name { font-size: 16px; font-weight: 500; }
-    .balance { font-size: 15px; font-weight: 600; }
-    .balance.positive { color: #34c759; }
-    .balance.negative { color: #ff3b30; }
-    .balance.zero { color: #8e8e93; font-weight: 400; }
+    .friend-name { font-size: 15px; font-weight: 600; color: var(--text); }
+    .friend-sublabel { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
 
-    .group-meta, .expense-meta { font-size: 13px; color: #8e8e93; margin-top: 2px; }
+    /* Avatars */
+    .avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 15px;
+      flex-shrink: 0;
+      letter-spacing: -0.3px;
+    }
+    .avatar.lg {
+      width: 64px; height: 64px;
+      font-size: 22px;
+    }
 
-    .checkbox-grid { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0; }
+    /* Balance pills */
+    .balance {
+      font-size: 13px; font-weight: 600;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+    }
+    .balance.positive { background: var(--mint-bg); color: var(--mint-text); }
+    .balance.negative { background: var(--amber-bg); color: var(--amber-text); }
+    .balance.zero { background: var(--neutral-bg); color: var(--neutral-text); }
+
+    .group-meta, .expense-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Filter pills */
+    .filter-pills {
+      display: flex; gap: 6px;
+      overflow-x: auto;
+      padding: 0 0 12px;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .filter-pills::-webkit-scrollbar { display: none; }
+    .filter-pills button {
+      width: auto; min-height: 0;
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      background: var(--surface);
+      color: var(--text);
+      border: 1.5px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .filter-pills button.active {
+      background: var(--text);
+      color: var(--surface);
+      border-color: var(--text);
+    }
+
+    .checkbox-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0; }
     .checkbox-grid label {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 16px; font-weight: normal; color: #1c1c1e;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 15px; font-weight: 500; color: var(--text);
       margin-bottom: 0;
+      padding: 8px 14px;
+      background: var(--bg);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
     }
-    .checkbox-grid input[type="checkbox"] { width: auto; min-height: 0; margin: 0; }
+    .checkbox-grid input[type="checkbox"] {
+      width: auto; min-height: 0; margin: 0;
+      accent-color: var(--coral);
+    }
 
+    /* Chips inside expense rows */
     .chip {
-      display: inline-block; background: #e5e5ea;
-      padding: 3px 10px; border-radius: 999px;
-      margin: 4px 4px 0 0; font-size: 12px;
+      display: inline-block;
+      background: var(--neutral-bg);
+      color: var(--neutral-text);
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      margin: 4px 4px 0 0;
+      font-size: 11px;
+      font-weight: 600;
     }
-    .chip.group { background: #d1e7ff; color: #0040b0; }
-    .chip.me { background: #d4f4dd; color: #1f7a3a; }
+    .chip.group { background: #E6EEFB; color: #185FA5; }
+    .chip.me { background: var(--mint-bg); color: var(--mint-text); }
+    .chip.payment { background: var(--mint); color: white; font-weight: 700; letter-spacing: 0.3px; }
 
-    .error { color: #ff3b30; font-size: 14px; margin-top: 6px; }
-    .empty { color: #8e8e93; font-style: italic; font-size: 14px; text-align: center; padding: 16px 0; }
+    .activity-payment {
+      background: #F0FAF6 !important;
+    }
+
+    .error {
+      color: var(--coral-deep);
+      font-size: 13px;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+    .empty {
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 14px;
+      text-align: center;
+      padding: 16px 0;
+    }
 
     table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; font-size: 12px; font-weight: 500; color: #8e8e93; text-transform: uppercase; padding: 6px 0; }
-    td { padding: 10px 0; border-bottom: 1px solid #f2f2f7; font-size: 16px; }
+    th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 8px 0;
+    }
+    td {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-soft);
+      font-size: 15px;
+    }
     tr:last-child td { border-bottom: 0; }
 
     .expense-item { cursor: pointer; }
-    .chevron { color: #c7c7cc; font-size: 20px; margin-left: 8px; }
+    .chevron { color: var(--text-muted); font-size: 22px; margin-left: 4px; line-height: 1; }
 
+    /* Tab bar */
     .tab-bar {
       position: fixed; bottom: 0; left: 0; right: 0;
-      background: rgba(248, 248, 248, 0.94);
+      background: rgba(255, 248, 240, 0.92);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-top: 0.5px solid rgba(60, 60, 67, 0.18);
+      border-top: 1px solid var(--border-soft);
       padding-bottom: env(safe-area-inset-bottom);
       display: flex;
       z-index: 100;
+      gap: 4px;
+      padding-left: 8px;
+      padding-right: 8px;
     }
     .tab-bar button {
-      flex: 1; background: transparent; color: #8e8e93;
-      border: 0; padding: 8px 4px 6px; font-size: 10px; font-weight: 500;
-      display: flex; flex-direction: column; align-items: center; gap: 2px;
-      min-height: 0; border-radius: 0;
-    }
-    .tab-bar button.active { color: #007aff; }
-    .tab-bar button:active { opacity: 0.6; }
-    .tab-bar svg { width: 26px; height: 26px; }
-
-    .add-action-btn {
+      flex: 1;
+      background: transparent;
+      color: var(--text-muted);
+      border: 0;
+      padding: 8px 4px 8px;
+      margin: 8px 0;
+      font-size: 10px;
+      font-weight: 600;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      min-height: 0;
+      border-radius: var(--radius-md);
       width: auto;
-      padding: 8px 14px;
+    }
+    .tab-bar button.active {
+      color: var(--coral);
+      background: var(--coral-soft);
+    }
+    .tab-bar button:active { opacity: 1; transform: none; }
+    .tab-bar svg { width: 24px; height: 24px; }
+
+    /* Add buttons in headers */
+    .header-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin: 8px 0 16px; gap: 12px;
+    }
+    .header-row h1 { margin: 0; }
+    .icon-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--text);
+      border: 1.5px solid var(--border);
+      padding: 0;
+      min-height: 0;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .icon-btn svg { width: 20px; height: 20px; }
+
+    /* Back button */
+    .back-btn {
+      width: auto;
+      padding: 8px 14px 8px 10px;
+      margin-bottom: 12px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1.5px solid var(--border);
       font-size: 14px;
+      font-weight: 600;
+      min-height: 0;
+      border-radius: var(--radius-pill);
+      display: inline-flex; align-items: center; gap: 4px;
     }
 
     .member-remove-btn {
-      width: auto;
-      min-height: 0;
+      width: auto; min-height: 0;
       padding: 4px 12px;
       background: transparent;
-      color: #ff3b30;
-      font-size: 22px;
-      font-weight: 400;
+      color: var(--coral-deep);
+      font-size: 22px; font-weight: 400;
       border: 0;
       line-height: 1;
     }
-    .member-remove-btn:active { opacity: 0.4; }
 
+    /* FAB */
     .fab {
       position: fixed;
-      bottom: calc(76px + env(safe-area-inset-bottom));
-      right: 16px;
-      width: 56px;
-      height: 56px;
+      bottom: calc(82px + env(safe-area-inset-bottom));
+      right: 18px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
-      background: #007aff;
+      background: var(--coral);
       color: white;
-      font-size: 30px;
+      font-size: 32px;
       font-weight: 300;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-      border: 0;
+      border: 4px solid var(--bg);
       padding: 0;
       min-height: 0;
       z-index: 90;
@@ -161,44 +428,80 @@
       justify-content: center;
       line-height: 1;
     }
-    .fab:active { transform: scale(0.94); opacity: 0.85; }
+    .fab:active { transform: scale(0.94); opacity: 0.9; }
+
+    /* Friend / Group detail header with avatar */
+    .detail-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 16px;
+    }
+    .detail-header h1 { margin: 0; }
+
+    /* Special: group list rows have richer content */
+    ul.list li.group-row .friend-name { font-size: 16px; }
+    ul.list li.group-row { padding: 12px; }
+
+    /* Misc tweaks */
+    select {
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='none' stroke='%236B6862' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M1 1l5 5 5-5'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    /* Hide native input number spinners on iOS */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
   </style>
 </head>
 <body>
   <main>
     <!-- FRIENDS -->
     <section id="view-friends" class="view active">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0 20px; gap: 12px;">
-        <h1 style="margin: 0;">Friends</h1>
-        <button id="show-add-friend-btn" class="add-action-btn">Add friends</button>
+      <div class="header-row">
+        <h1>Friends</h1>
+        <button id="show-add-friend-btn" class="icon-btn" aria-label="Add friend">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        </button>
       </div>
 
-      <div class="card" style="padding: 10px 14px;">
-        <label for="friends-filter" style="margin-bottom: 4px;">Show</label>
-        <select id="friends-filter">
-          <option value="all">All friends</option>
-          <option value="owe-me">They owe me</option>
-          <option value="i-owe">I owe them</option>
-          <option value="settled">Settled up</option>
-        </select>
+      <div id="friends-hero" class="hero-balance hidden">
+        <div class="hero-label" id="friends-hero-label">overall</div>
+        <div class="hero-amount" id="friends-hero-amount">€0.00</div>
+        <div class="hero-breakdown" id="friends-hero-breakdown"></div>
       </div>
 
-      <div class="card">
-        <ul id="friends-list" class="list"></ul>
+      <div class="filter-pills" id="friends-filter-pills">
+        <button data-filter="all" class="active">All</button>
+        <button data-filter="owe-me">Owe you</button>
+        <button data-filter="i-owe">You owe</button>
+        <button data-filter="settled">Settled</button>
       </div>
+      <select id="friends-filter" class="hidden">
+        <option value="all">All friends</option>
+        <option value="owe-me">They owe me</option>
+        <option value="i-owe">I owe them</option>
+        <option value="settled">Settled up</option>
+      </select>
+
+      <ul id="friends-list" class="list"></ul>
     </section>
 
     <!-- ADD FRIEND -->
     <section id="view-add-friend" class="view">
-      <button id="add-friend-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
-      <h1>Add friends</h1>
+      <button id="add-friend-back" class="back-btn">‹ Back</button>
+      <h1>Add friend</h1>
       <div class="card">
         <div class="form-row">
           <label for="friend-name">Name</label>
           <input id="friend-name" placeholder="Full name" />
         </div>
         <div class="form-row">
-          <label for="friend-contact">Phone number or email address</label>
+          <label for="friend-contact">Phone or email</label>
           <input id="friend-contact" placeholder="Optional" autocomplete="off" />
         </div>
         <div class="button-stack" style="margin-top: 16px;">
@@ -211,11 +514,30 @@
 
     <!-- FRIEND DETAIL -->
     <section id="view-friend-detail" class="view">
-      <button id="friend-detail-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
-      <h1 id="friend-detail-name"></h1>
+      <button id="friend-detail-back" class="back-btn">‹ Back</button>
+      <div class="detail-header">
+        <div id="friend-detail-avatar"></div>
+        <h1 id="friend-detail-name"></h1>
+      </div>
       <div class="card">
         <h2 id="friend-detail-balance-title">Balance</h2>
         <ul id="friend-breakdown-list" class="list"></ul>
+      </div>
+      <div class="card hidden" id="settle-up-card">
+        <h2>Settle up</h2>
+        <p style="font-size: 14px; color: var(--text-soft); margin: 0 0 12px;" id="settle-up-prompt"></p>
+        <button id="show-settle-up-btn" class="settle-up">Settle up</button>
+        <div id="settle-up-form" class="hidden" style="margin-top: 12px;">
+          <div class="form-row">
+            <label for="settle-up-amount">Amount</label>
+            <input id="settle-up-amount" type="number" step="0.01" placeholder="0.00 €" />
+          </div>
+          <div class="button-stack">
+            <button id="confirm-settle-up-btn">Record payment</button>
+            <button id="cancel-settle-up-btn" class="secondary">Cancel</button>
+          </div>
+          <div id="settle-up-error" class="error"></div>
+        </div>
       </div>
       <div class="card">
         <h2>Activity</h2>
@@ -225,28 +547,30 @@
 
     <!-- GROUPS -->
     <section id="view-groups" class="view">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0 20px; gap: 12px;">
-        <h1 style="margin: 0;">Groups</h1>
-        <button id="show-add-group-btn" class="add-action-btn">Create group</button>
+      <div class="header-row">
+        <h1>Groups</h1>
+        <button id="show-add-group-btn" class="icon-btn" aria-label="Create group">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
       </div>
 
-      <div class="card" style="padding: 10px 14px;">
-        <label for="groups-filter" style="margin-bottom: 4px;">Show</label>
-        <select id="groups-filter">
-          <option value="all">All groups</option>
-          <option value="outstanding">Outstanding balance</option>
-          <option value="settled">Settled up</option>
-        </select>
+      <div class="filter-pills" id="groups-filter-pills">
+        <button data-filter="all" class="active">All</button>
+        <button data-filter="outstanding">Outstanding</button>
+        <button data-filter="settled">Settled</button>
       </div>
+      <select id="groups-filter" class="hidden">
+        <option value="all">All groups</option>
+        <option value="outstanding">Outstanding balance</option>
+        <option value="settled">Settled up</option>
+      </select>
 
-      <div class="card">
-        <ul id="groups-list" class="list"></ul>
-      </div>
+      <ul id="groups-list" class="list"></ul>
     </section>
 
     <!-- ADD GROUP -->
     <section id="view-add-group" class="view">
-      <button id="add-group-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
+      <button id="add-group-back" class="back-btn">‹ Back</button>
       <h1>Create group</h1>
       <div class="card">
         <div class="form-row">
@@ -267,8 +591,11 @@
 
     <!-- GROUP DETAIL -->
     <section id="view-group-detail" class="view">
-      <button id="group-detail-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
-      <h1 id="group-detail-name"></h1>
+      <button id="group-detail-back" class="back-btn">‹ Back</button>
+      <div class="detail-header">
+        <div id="group-detail-avatar"></div>
+        <h1 id="group-detail-name"></h1>
+      </div>
 
       <div class="card">
         <button id="group-add-expense-btn">+ Add expense to this group</button>
@@ -277,7 +604,7 @@
       <div class="card">
         <h2>Members</h2>
         <ul id="group-members-list" class="list"></ul>
-        <button id="show-add-members-btn" class="secondary" style="margin-top: 8px;">+ Add members</button>
+        <button id="show-add-members-btn" class="secondary" style="margin-top: 10px;">+ Add members</button>
         <div id="add-members-form" class="hidden" style="margin-top: 12px;">
           <div id="add-members-list" class="checkbox-grid"></div>
           <div class="button-stack" style="margin-top: 12px;">
@@ -305,7 +632,7 @@
       <div class="card">
         <button id="delete-group-btn" class="danger">Delete group</button>
         <div id="delete-group-confirm" class="hidden" style="margin-top: 12px;">
-          <p style="font-size: 14px; margin: 0 0 12px; color: #1c1c1e;">This will permanently delete the group and all its expenses. This cannot be undone.</p>
+          <p style="font-size: 14px; margin: 0 0 12px; color: var(--text);">This will permanently delete the group and all its expenses. This cannot be undone.</p>
           <div class="button-stack">
             <button id="confirm-delete-group-btn" class="danger">Yes, delete group</button>
             <button id="cancel-delete-group-btn" class="secondary">Cancel</button>
@@ -317,14 +644,12 @@
     <!-- ACTIVITY -->
     <section id="view-activity" class="view">
       <h1>Activity</h1>
-      <div class="card">
-        <ul id="expenses-list" class="list"></ul>
-      </div>
+      <ul id="expenses-list" class="list"></ul>
     </section>
 
     <!-- ADD / EDIT EXPENSE -->
     <section id="view-add-expense" class="view">
-      <button id="add-expense-back" class="secondary" style="width: auto; padding: 8px 14px; margin-bottom: 12px;">‹ Back</button>
+      <button id="add-expense-back" class="back-btn">‹ Back</button>
       <h1 id="expense-form-title">New expense</h1>
 
       <div class="card">
@@ -385,14 +710,18 @@
       <h1>Account</h1>
 
       <div class="card hidden" id="account-current-card">
-        <h2>Profile</h2>
-        <p style="font-size: 18px; font-weight: 600; margin: 0 0 4px;" id="account-current-name"></p>
-        <p style="color: #8e8e93; margin: 0;" id="account-current-balance"></p>
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 4px;">
+          <div id="account-current-avatar"></div>
+          <div style="flex: 1;">
+            <p style="font-size: 18px; font-weight: 600; margin: 0 0 2px;" id="account-current-name"></p>
+            <p style="color: var(--text-soft); font-size: 13px; margin: 0;" id="account-current-balance"></p>
+          </div>
+        </div>
       </div>
 
       <div class="card">
         <h2 id="account-picker-title">Set up your profile</h2>
-        <p style="font-size: 14px; color: #3c3c43; margin: 0 0 12px;">Pick which person represents you. Friends, balances and expenses will be shown from your perspective.</p>
+        <p style="font-size: 14px; color: var(--text-soft); margin: 0 0 12px;">Pick which person represents you. Friends, balances and expenses will be shown from your perspective.</p>
         <div class="form-row">
           <label for="account-user-select">I am</label>
           <select id="account-user-select"></select>
@@ -410,19 +739,19 @@
 
   <nav class="tab-bar">
     <button data-view="friends" class="active">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5"/><path d="M14 19c0-2 2-4 5-4"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       Friends
     </button>
     <button data-view="groups">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="8" r="2.5"/><circle cx="17" cy="8" r="2.5"/><circle cx="12" cy="16" r="2.5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Groups
     </button>
     <button data-view="activity">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       Activity
     </button>
     <button data-view="account">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       Account
     </button>
   </nav>
@@ -432,6 +761,46 @@
     const $ = id => document.getElementById(id);
     const fmt = n => `${Math.abs(n).toFixed(2)} €`;
 
+    function formatTime(ms) {
+      if (!ms) return '';
+      const d = new Date(ms);
+      const now = new Date();
+      const sameDay = d.toDateString() === now.toDateString();
+      const y = new Date(now); y.setDate(now.getDate() - 1);
+      const isYesterday = d.toDateString() === y.toDateString();
+      const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      if (sameDay) return `Today ${time}`;
+      if (isYesterday) return `Yesterday ${time}`;
+      return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${time}`;
+    }
+
+    // Avatar palette — deterministic by user id
+    const AVATAR_COLORS = [
+      { bg: '#4ECDC4', fg: '#FFFFFF' }, // teal
+      { bg: '#C5B3E6', fg: '#FFFFFF' }, // lavender
+      { bg: '#FFE66D', fg: '#854F0B' }, // yellow
+      { bg: '#FF6B6B', fg: '#FFFFFF' }, // coral
+      { bg: '#F4C0D1', fg: '#72243E' }, // pink
+      { bg: '#A8E6CF', fg: '#0F6E56' }, // mint
+      { bg: '#FFB6A8', fg: '#993C1D' }, // peach
+      { bg: '#B5D4F4', fg: '#0C447C' }, // sky
+    ];
+
+    function avatarColors(userId) {
+      return AVATAR_COLORS[Math.abs(userId | 0) % AVATAR_COLORS.length];
+    }
+    function initialsFor(name) {
+      const parts = (name || '?').trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return '?';
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    function avatarHtml(userId, name, size) {
+      const c = avatarColors(userId);
+      const cls = size === 'lg' ? 'avatar lg' : 'avatar';
+      return `<div class="${cls}" style="background: ${c.bg}; color: ${c.fg};">${initialsFor(name)}</div>`;
+    }
+
     let currentExpenses = [];
     let currentFriendsData = [];
     let currentGroupsData = [];
@@ -439,6 +808,7 @@
     let editingId = null;
     let currentGroupId = null;
     let currentGroupMemberIds = [];
+    let currentFriendDetailId = null;
     let expenseFormReturnView = 'view-activity';
 
     function getAllUsers() {
@@ -484,6 +854,20 @@
     document.querySelectorAll('.tab-bar button').forEach(btn => {
       btn.addEventListener('click', () => switchToTab(btn.dataset.view));
     });
+
+    // Filter pills wiring (replaces native selects visually; hidden selects keep the value for refreshAll)
+    function wireFilterPills(pillsContainerId, hiddenSelectId) {
+      document.querySelectorAll(`#${pillsContainerId} button`).forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll(`#${pillsContainerId} button`).forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          $(hiddenSelectId).value = btn.dataset.filter;
+          refreshAll();
+        });
+      });
+    }
+    wireFilterPills('friends-filter-pills', 'friends-filter');
+    wireFilterPills('groups-filter-pills', 'groups-filter');
 
     function rebuildContextDropdown() {
       const prev = $('expense-context').value;
@@ -616,6 +1000,7 @@
       if (currentUserData) {
         $('account-current-card').classList.remove('hidden');
         $('account-current-name').textContent = currentUserData.name;
+        $('account-current-avatar').innerHTML = avatarHtml(currentUserData.id, currentUserData.name, 'lg');
         const bal = currentUserData.balance;
         $('account-current-balance').textContent =
           bal > 0.01 ? `Overall, you are owed ${fmt(bal)}`
@@ -637,23 +1022,55 @@
         : '<option value="">Add a friend first</option>';
     }
 
+    function updateFriendsHero(friends) {
+      if (!currentUserData) {
+        $('friends-hero').classList.add('hidden');
+        return;
+      }
+      let owedToYou = 0;
+      let youOwe = 0;
+      for (const f of friends) {
+        if (f.balance > 0.01) owedToYou += f.balance;
+        else if (f.balance < -0.01) youOwe += -f.balance;
+      }
+      const net = owedToYou - youOwe;
+      $('friends-hero').classList.remove('hidden');
+      if (Math.abs(net) < 0.01) {
+        $('friends-hero-label').textContent = 'all settled up';
+        $('friends-hero-amount').textContent = '€0.00';
+      } else if (net > 0) {
+        $('friends-hero-label').textContent = 'overall, you are owed';
+        $('friends-hero-amount').textContent = fmt(net);
+      } else {
+        $('friends-hero-label').textContent = 'overall, you owe';
+        $('friends-hero-amount').textContent = fmt(net);
+      }
+      $('friends-hero-breakdown').innerHTML = `
+        <span><span class="hero-dot get"></span>you get ${fmt(owedToYou)}</span>
+        <span><span class="hero-dot owe"></span>you owe ${fmt(youOwe)}</span>
+      `;
+    }
+
     async function refreshAll() {
       currentUserData = await invoke('get_current_user');
 
-      const [friends, groups, expenses] = await Promise.all([
+      const [friends, groups, expenses, payments] = await Promise.all([
         invoke('list_friends'),
         invoke('list_groups'),
         invoke('list_expenses'),
+        invoke('list_payments'),
       ]);
       currentExpenses = expenses;
       currentFriendsData = friends;
       currentGroupsData = groups;
 
+      updateFriendsHero(friends);
+
       // FRIENDS list with filtering
       const meSet = currentUserData !== null;
       const friendsFilter = $('friends-filter').value;
       let filteredFriends = [...friends];
-      let friendsEmptyMsg = 'No friends yet. Tap "Add friends" to start.';
+      let friendsEmptyMsg = 'No friends yet. Tap + to start.';
       if (friendsFilter === 'owe-me') {
         filteredFriends = filteredFriends.filter(f => f.balance > 0.01);
         filteredFriends.sort((a, b) => b.balance - a.balance);
@@ -672,22 +1089,27 @@
 
       $('friends-list').innerHTML = filteredFriends.length ? filteredFriends.map(f => {
         const cls = f.balance > 0.01 ? 'positive' : f.balance < -0.01 ? 'negative' : 'zero';
-        const label = meSet
-          ? (f.balance > 0.01 ? `owes you ${fmt(f.balance)}`
-             : f.balance < -0.01 ? `you owe ${fmt(f.balance)}`
+        const sublabel = meSet
+          ? (f.balance > 0.01 ? 'owes you'
+             : f.balance < -0.01 ? 'you owe'
              : 'settled up')
-          : (f.balance > 0.01 ? `gets back ${fmt(f.balance)}`
-             : f.balance < -0.01 ? `owes ${fmt(f.balance)}`
+          : (f.balance > 0.01 ? 'gets back'
+             : f.balance < -0.01 ? 'owes'
              : 'settled up');
+        const amount = Math.abs(f.balance) > 0.01 ? fmt(f.balance) : '€0.00';
         return `<li data-friend-id="${f.id}" data-friend-name="${f.name}">
-          <span class="friend-name">${f.name}</span>
-          <span class="balance ${cls}">${label}</span>
+          ${avatarHtml(f.id, f.name)}
+          <div style="flex: 1; min-width: 0;">
+            <div class="friend-name">${f.name}</div>
+            <div class="friend-sublabel">${sublabel}</div>
+          </div>
+          <span class="balance ${cls}">${amount}</span>
         </li>`;
       }).join('') : `<li class="empty">${friendsEmptyMsg}</li>`;
 
       const groupsFilter = $('groups-filter').value;
       let filteredGroups = [...groups];
-      let groupsEmptyMsg = 'No groups yet. Tap "Create group" to start.';
+      let groupsEmptyMsg = 'No groups yet. Tap + to start.';
       if (groupsFilter === 'outstanding') {
         filteredGroups = filteredGroups.filter(g => g.has_outstanding);
         groupsEmptyMsg = 'No groups with outstanding balances.';
@@ -698,19 +1120,21 @@
       filteredGroups.sort((a, b) => a.name.localeCompare(b.name));
 
       $('groups-list').innerHTML = filteredGroups.length ? filteredGroups.map(g => `<li
+        class="group-row"
         data-group-id="${g.id}"
         data-group-name="${g.name}"
         data-member-names='${JSON.stringify(g.members)}'
         data-member-ids='${JSON.stringify(g.member_ids)}'
       >
-        <div>
+        ${avatarHtml(g.id + 10000, g.name)}
+        <div style="flex: 1; min-width: 0;">
           <div class="friend-name">${g.name}</div>
           <div class="group-meta">${g.members.join(', ')} · ${g.expense_count} expense${g.expense_count === 1 ? '' : 's'}</div>
         </div>
         <span class="chevron">›</span>
       </li>`).join('') : `<li class="empty">${groupsEmptyMsg}</li>`;
 
-      // Group creation members: include me with (you) label, pre-checked
+      // Group creation members
       const allForGroup = getAllUsers();
       $('group-members').innerHTML = allForGroup.length ? allForGroup.map(f => {
         const meFlag = currentUserData && f.id === currentUserData.id;
@@ -720,18 +1144,27 @@
 
       rebuildContextDropdown();
 
-      $('expenses-list').innerHTML = expenses.length ? expenses.map(e => {
-        const payer = nameOrYou(e.paid_by, e.paid_by_id);
-        const partChips = e.participants.map((p, i) => {
-          const pid = e.participant_ids[i];
+      const activityItems = [
+        ...payments.map(p => ({ _type: 'payment', ...p })),
+        ...expenses.map(e => ({ _type: 'expense', ...e })),
+      ].sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+
+      $('expenses-list').innerHTML = activityItems.length ? activityItems.map(item => {
+        if (item._type === 'payment') {
+          return renderPaymentItem(item);
+        }
+        const payer = nameOrYou(item.paid_by, item.paid_by_id);
+        const partChips = item.participants.map((p, i) => {
+          const pid = item.participant_ids[i];
           const text = nameOrYou(p, pid);
           const cls = isMe(pid) ? 'chip me' : 'chip';
           return `<span class="${cls}">${text}</span>`;
         }).join('');
-        return `<li class="expense-item" data-expense-id="${e.id}">
-          <div style="flex: 1;">
-            <div style="font-weight: 600;">${e.description} <span style="font-weight: 400;">— ${fmt(e.amount)}</span></div>
-            <div class="expense-meta">Paid by ${payer}${e.group_name ? ` · <span class="chip group">${e.group_name}</span>` : ''}</div>
+        return `<li class="expense-item" data-expense-id="${item.id}">
+          ${avatarHtml(item.paid_by_id, item.paid_by)}
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 600; font-size: 15px;">${item.description} <span style="font-weight: 400; color: var(--text-soft);">— ${fmt(item.amount)}</span></div>
+            <div class="expense-meta">${formatTime(item.created_at)} · Paid by ${payer}${item.group_name ? ` · <span class="chip group">${item.group_name}</span>` : ''}</div>
             <div>${partChips}</div>
           </div>
           <span class="chevron">›</span>
@@ -741,39 +1174,96 @@
       refreshAccountView();
     }
 
+    function renderPaymentItem(p) {
+      const from = nameOrYou(p.from_name, p.from_id);
+      const to = nameOrYou(p.to_name, p.to_id);
+      const isMine = isMe(p.from_id) || isMe(p.to_id);
+      const cls = isMine ? 'expense-item activity-payment' : 'expense-item';
+      return `<li class="${cls}">
+        ${avatarHtml(p.from_id, p.from_name)}
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 600; font-size: 15px;"><span class="chip payment">PAYMENT</span> ${from} paid ${to} <span style="font-weight: 400; color: var(--text-soft);">${fmt(p.amount)}</span></div>
+          <div class="expense-meta">${formatTime(p.created_at)}${p.group_name ? ` · <span class="chip group">${p.group_name}</span>` : ''}</div>
+        </div>
+      </li>`;
+    }
+
     async function openFriendDetail(friendId, friendName) {
-      const expenses = await invoke('list_expenses_for_friend', { friendId });
+      currentFriendDetailId = friendId;
+      const [expenses, payments] = await Promise.all([
+        invoke('list_expenses_for_friend', { friendId }),
+        invoke('list_payments_for_friend', { friendId }),
+      ]);
 
       $('friend-detail-name').textContent = friendName;
+      $('friend-detail-avatar').innerHTML = avatarHtml(friendId, friendName, 'lg');
 
+      let friendBalance = 0;
       if (currentUserData) {
         const friend = currentFriendsData.find(f => f.id === friendId);
         const bal = friend ? friend.balance : 0;
+        friendBalance = bal;
         const cls = bal > 0.01 ? 'positive' : bal < -0.01 ? 'negative' : 'zero';
-        const label = bal > 0.01 ? `owes you ${fmt(bal)}`
-                    : bal < -0.01 ? `you owe ${fmt(bal)}`
-                    : 'settled up';
+        const sublabel = bal > 0.01 ? 'owes you'
+                       : bal < -0.01 ? 'you owe'
+                       : 'settled up';
+        const amount = Math.abs(bal) > 0.01 ? fmt(bal) : '€0.00';
         $('friend-detail-balance-title').textContent = 'Balance with you';
         $('friend-breakdown-list').innerHTML = `<li>
-          <span class="friend-name">${friendName}</span>
-          <span class="balance ${cls}">${label}</span>
+          ${avatarHtml(friendId, friendName)}
+          <div style="flex: 1; min-width: 0;">
+            <div class="friend-name">${friendName}</div>
+            <div class="friend-sublabel">${sublabel}</div>
+          </div>
+          <span class="balance ${cls}">${amount}</span>
         </li>`;
       } else {
         const breakdown = await invoke('friend_breakdown', { friendId });
         $('friend-detail-balance-title').textContent = 'Balance breakdown';
         $('friend-breakdown-list').innerHTML = breakdown.length ? breakdown.map(b => {
           const cls = b.amount > 0.01 ? 'positive' : 'negative';
-          const label = b.amount > 0.01 ? `owes ${friendName} ${fmt(b.amount)}` : `${friendName} owes ${fmt(b.amount)}`;
-          return `<li><span class="friend-name">${b.name}</span><span class="balance ${cls}">${label}</span></li>`;
+          const sublabel = b.amount > 0.01 ? `owes ${friendName}` : `${friendName} owes`;
+          return `<li>
+            ${avatarHtml(b.user_id ?? 0, b.name)}
+            <div style="flex: 1; min-width: 0;">
+              <div class="friend-name">${b.name}</div>
+              <div class="friend-sublabel">${sublabel}</div>
+            </div>
+            <span class="balance ${cls}">${fmt(b.amount)}</span>
+          </li>`;
         }).join('') : '<li class="empty">Settled up with everyone.</li>';
       }
 
-      $('friend-expenses-list').innerHTML = expenses.length ? expenses.map(e => {
-        const payer = nameOrYou(e.paid_by, e.paid_by_id);
+      if (currentUserData && Math.abs(friendBalance) > 0.01) {
+        $('settle-up-card').classList.remove('hidden');
+        if (friendBalance > 0.01) {
+          $('settle-up-prompt').textContent = `${friendName} owes you ${fmt(friendBalance)}. Record a payment to settle.`;
+        } else {
+          $('settle-up-prompt').textContent = `You owe ${friendName} ${fmt(Math.abs(friendBalance))}. Record a payment to settle.`;
+        }
+        $('settle-up-amount').value = Math.abs(friendBalance).toFixed(2);
+        $('settle-up-form').classList.add('hidden');
+        $('show-settle-up-btn').classList.remove('hidden');
+        $('settle-up-error').textContent = '';
+      } else {
+        $('settle-up-card').classList.add('hidden');
+      }
+
+      const items = [
+        ...payments.map(p => ({ _type: 'payment', ...p })),
+        ...expenses.map(e => ({ _type: 'expense', ...e })),
+      ].sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+
+      $('friend-expenses-list').innerHTML = items.length ? items.map(item => {
+        if (item._type === 'payment') {
+          return renderPaymentItem(item);
+        }
+        const payer = nameOrYou(item.paid_by, item.paid_by_id);
         return `<li>
-          <div style="flex: 1;">
-            <div style="font-weight: 600;">${e.description} <span style="font-weight: 400;">— ${fmt(e.amount)}</span></div>
-            <div class="expense-meta">Paid by ${payer}${e.group_name ? ` · <span class="chip group">${e.group_name}</span>` : ''}</div>
+          ${avatarHtml(item.paid_by_id, item.paid_by)}
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 600; font-size: 15px;">${item.description} <span style="font-weight: 400; color: var(--text-soft);">— ${fmt(item.amount)}</span></div>
+            <div class="expense-meta">${formatTime(item.created_at)} · Paid by ${payer}${item.group_name ? ` · <span class="chip group">${item.group_name}</span>` : ''}</div>
           </div>
         </li>`;
       }).join('') : '<li class="empty">No activity yet.</li>';
@@ -786,11 +1276,13 @@
       currentGroupMemberIds = memberIds;
 
       $('group-detail-name').textContent = groupName;
+      $('group-detail-avatar').innerHTML = avatarHtml(groupId + 10000, groupName, 'lg');
 
       $('group-members-list').innerHTML = memberIds.map((id, i) => {
         const label = labelFor(memberNames[i], id);
         return `<li>
-          <span class="friend-name">${label}</span>
+          ${avatarHtml(id, memberNames[i])}
+          <span class="friend-name" style="flex: 1;">${label}</span>
           <button class="member-remove-btn" data-member-id="${id}" aria-label="Remove member">×</button>
         </li>`;
       }).join('');
@@ -800,40 +1292,58 @@
       $('delete-group-btn').classList.remove('hidden');
       $('delete-group-confirm').classList.add('hidden');
 
-      const [expenses, balances] = await Promise.all([
+      const [expenses, balances, payments] = await Promise.all([
         invoke('list_expenses_for_group', { groupId }),
         invoke('group_balances', { groupId }),
+        invoke('list_payments_for_group', { groupId }),
       ]);
 
       $('group-balance-list').innerHTML = balances.length ? balances.map(b => {
         const cls = b.amount > 0.01 ? 'positive' : b.amount < -0.01 ? 'negative' : 'zero';
         const meFlag = isMe(b.user_id);
-        const label = meFlag
-          ? (b.amount > 0.01 ? `you get back ${fmt(b.amount)}`
-             : b.amount < -0.01 ? `you owe ${fmt(b.amount)}`
+        const sublabel = meFlag
+          ? (b.amount > 0.01 ? 'you get back'
+             : b.amount < -0.01 ? 'you owe'
              : 'settled up')
-          : (b.amount > 0.01 ? `gets back ${fmt(b.amount)}`
-             : b.amount < -0.01 ? `owes ${fmt(b.amount)}`
+          : (b.amount > 0.01 ? 'gets back'
+             : b.amount < -0.01 ? 'owes'
              : 'settled up');
-        return `<li><span class="friend-name">${labelFor(b.name, b.user_id)}</span><span class="balance ${cls}">${label}</span></li>`;
+        const amount = Math.abs(b.amount) > 0.01 ? fmt(b.amount) : '€0.00';
+        return `<li>
+          ${avatarHtml(b.user_id, b.name)}
+          <div style="flex: 1; min-width: 0;">
+            <div class="friend-name">${labelFor(b.name, b.user_id)}</div>
+            <div class="friend-sublabel">${sublabel}</div>
+          </div>
+          <span class="balance ${cls}">${amount}</span>
+        </li>`;
       }).join('') : '<li class="empty">No expenses yet.</li>';
 
-      $('group-expenses-list').innerHTML = expenses.length ? expenses.map(e => {
-        const payer = nameOrYou(e.paid_by, e.paid_by_id);
-        const partChips = e.participants.map((p, i) => {
-          const pid = e.participant_ids[i];
+      const groupItems = [
+        ...payments.map(p => ({ _type: 'payment', ...p })),
+        ...expenses.map(e => ({ _type: 'expense', ...e })),
+      ].sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+
+      $('group-expenses-list').innerHTML = groupItems.length ? groupItems.map(item => {
+        if (item._type === 'payment') {
+          return renderPaymentItem(item);
+        }
+        const payer = nameOrYou(item.paid_by, item.paid_by_id);
+        const partChips = item.participants.map((p, i) => {
+          const pid = item.participant_ids[i];
           const text = nameOrYou(p, pid);
           const cls = isMe(pid) ? 'chip me' : 'chip';
           return `<span class="${cls}">${text}</span>`;
         }).join('');
         return `<li>
-          <div style="flex: 1;">
-            <div style="font-weight: 600;">${e.description} <span style="font-weight: 400;">— ${fmt(e.amount)}</span></div>
-            <div class="expense-meta">Paid by ${payer}</div>
+          ${avatarHtml(item.paid_by_id, item.paid_by)}
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 600; font-size: 15px;">${item.description} <span style="font-weight: 400; color: var(--text-soft);">— ${fmt(item.amount)}</span></div>
+            <div class="expense-meta">${formatTime(item.created_at)} · Paid by ${payer}</div>
             <div>${partChips}</div>
           </div>
         </li>`;
-      }).join('') : '<li class="empty">No expenses yet.</li>';
+      }).join('') : '<li class="empty">No activity yet.</li>';
 
       $('group-settlements').innerHTML = '';
       showView('view-group-detail');
@@ -1005,6 +1515,51 @@
       openFriendDetail(parseInt(li.dataset.friendId, 10), li.dataset.friendName);
     });
     $('friend-detail-back').addEventListener('click', () => showView('view-friends'));
+
+    // ---- Settle up ----
+    $('show-settle-up-btn').addEventListener('click', () => {
+      $('show-settle-up-btn').classList.add('hidden');
+      $('settle-up-form').classList.remove('hidden');
+      setTimeout(() => $('settle-up-amount').focus(), 50);
+    });
+    $('cancel-settle-up-btn').addEventListener('click', () => {
+      $('settle-up-form').classList.add('hidden');
+      $('show-settle-up-btn').classList.remove('hidden');
+      $('settle-up-error').textContent = '';
+    });
+    $('confirm-settle-up-btn').addEventListener('click', async () => {
+      $('settle-up-error').textContent = '';
+      if (currentFriendDetailId === null || !currentUserData) {
+        $('settle-up-error').textContent = 'Set up your profile in Account first.';
+        return;
+      }
+      const amount = parseFloat($('settle-up-amount').value);
+      if (!amount || amount <= 0) {
+        $('settle-up-error').textContent = 'Amount must be positive.';
+        return;
+      }
+      const friend = currentFriendsData.find(f => f.id === currentFriendDetailId);
+      if (!friend) {
+        $('settle-up-error').textContent = 'Friend not found.';
+        return;
+      }
+      const bal = friend.balance;
+      let fromId, toId;
+      if (bal < 0) {
+        fromId = currentUserData.id;
+        toId = currentFriendDetailId;
+      } else {
+        fromId = currentFriendDetailId;
+        toId = currentUserData.id;
+      }
+      try {
+        await invoke('record_payment', { fromId, toId, amount, groupId: null });
+        await refreshAll();
+        await openFriendDetail(currentFriendDetailId, friend.name);
+      } catch (e) {
+        $('settle-up-error').textContent = e;
+      }
+    });
 
     // ---- Groups ----
     $('show-add-group-btn').addEventListener('click', () => {

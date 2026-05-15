@@ -11,7 +11,7 @@ use settlemate_rust::{
         user::User,
     },
     services::{
-        balance::{balances_with_payments, pairwise_balances},
+        balance::{balances_with_payments, pairwise_balances, pair_debt_in_context},
         simplify::simplify_debts,
         split::Split,
     },
@@ -56,6 +56,7 @@ struct ExpenseDto {
     participant_ids: Vec<u64>,
     group_id: Option<u64>,
     group_name: Option<String>,
+    created_at: u64,
 }
 
 #[derive(Serialize, Clone)]
@@ -68,6 +69,7 @@ struct PaymentDto {
     amount: f64,
     group_id: Option<u64>,
     group_name: Option<String>,
+    created_at: u64,
 }
 
 #[derive(Serialize, Clone)]
@@ -109,6 +111,7 @@ fn expense_to_dto(e: &Expense, data: &AppData) -> ExpenseDto {
         participant_ids,
         group_id: gid,
         group_name: gid.and_then(|id| group_name_of(data, id)),
+        created_at: e.created_at(),
     }
 }
 
@@ -122,6 +125,7 @@ fn payment_to_dto(p: &Payment, data: &AppData) -> PaymentDto {
         amount: p.amount(),
         group_id: p.group_id(),
         group_name: p.group_id().and_then(|id| group_name_of(data, id)),
+        created_at: p.created_at(),
     }
 }
 
@@ -361,6 +365,7 @@ fn update_expense(
     let mut data = state.0.lock().unwrap();
     let idx = data.expenses.iter().position(|e| e.id == id)
         .ok_or_else(|| "Expense not found.".to_string())?;
+    let original_ts = data.expenses[idx].created_at();
     let split = Split::new_equal(participants).map_err(|e| e)?;
     data.expenses[idx] = Expense::new(id, &description, amount, paid_by, group_id, split);
     Ok(())
@@ -394,6 +399,7 @@ fn record_payment(
     state: State<AppState>,
 ) -> Result<(), String> {
     let mut data = state.0.lock().unwrap();
+
     if !data.users.iter().any(|u| u.id == from_id) {
         return Err("Sender not found".to_string());
     }
@@ -405,10 +411,82 @@ fn record_payment(
             return Err("Group not found".to_string());
         }
     }
-    data.next_payment_id += 1;
-    let id = data.next_payment_id;
-    let payment = Payment::new(id, from_id, to_id, amount, group_id)?;
-    data.payments.push(payment);
+    if amount <= 0.0 {
+        return Err("Amount must be positive".to_string());
+    }
+    if from_id == to_id {
+        return Err("Sender and recipient must be different".to_string());
+    }
+
+    // Build (group_id, amount) allocations to record as Payment entries
+    let allocations: Vec<(Option<u64>, f64)> = if group_id.is_some() {
+        // Explicit group: record as a single payment
+        vec![(group_id, amount)]
+    } else {
+        // Auto-distribute pro-rata across contexts where from_id owes to_id
+        let pair_groups: Vec<u64> = data.groups.iter()
+            .filter(|g| g.members().contains(&from_id) && g.members().contains(&to_id))
+            .map(|g| g.id)
+            .collect();
+
+        let mut contexts: Vec<(Option<u64>, f64)> = Vec::new();
+
+        let untagged_debt = pair_debt_in_context(&data.expenses, &data.payments, from_id, to_id, None);
+        if untagged_debt > 0.0 {
+            contexts.push((None, untagged_debt));
+        }
+        for gid in pair_groups {
+            let debt = pair_debt_in_context(&data.expenses, &data.payments, from_id, to_id, Some(gid));
+            if debt > 0.0 {
+                contexts.push((Some(gid), debt));
+            }
+        }
+
+        if contexts.is_empty() {
+            // No outstanding from→to debt; record as untagged
+            vec![(None, amount)]
+        } else {
+            let total_debt: f64 = contexts.iter().map(|(_, d)| d).sum();
+            let to_distribute = amount.min(total_debt);
+            let remainder = amount - to_distribute;
+
+            let mut allocs: Vec<(Option<u64>, f64)> = contexts.iter()
+                .map(|(gid, debt)| {
+                    let alloc = (to_distribute * (debt / total_debt) * 100.0).round() / 100.0;
+                    (*gid, alloc)
+                })
+                .collect();
+
+            // Absorb rounding drift into the last allocation
+            let allocated_sum: f64 = allocs.iter().map(|(_, a)| a).sum();
+            let drift = to_distribute - allocated_sum;
+            if !allocs.is_empty() && drift.abs() > 0.001 {
+                let last_idx = allocs.len() - 1;
+                allocs[last_idx].1 = ((allocs[last_idx].1 + drift) * 100.0).round() / 100.0;
+            }
+
+            // Any overpayment goes to the untagged bucket
+            if remainder > 0.001 {
+                if let Some(idx) = allocs.iter().position(|(g, _)| g.is_none()) {
+                    allocs[idx].1 = ((allocs[idx].1 + remainder) * 100.0).round() / 100.0;
+                } else {
+                    allocs.push((None, (remainder * 100.0).round() / 100.0));
+                }
+            }
+
+            allocs
+        }
+    };
+
+    // Create the payment records
+    for (gid, alloc_amount) in allocations {
+        if alloc_amount < 0.01 { continue; }
+        data.next_payment_id += 1;
+        let id = data.next_payment_id;
+        let payment = Payment::new(id, from_id, to_id, alloc_amount, gid)?;
+        data.payments.push(payment);
+    }
+
     Ok(())
 }
 

@@ -1,6 +1,11 @@
+use std::time::{SystemTime, UNIX_EPOCH};
 use crate::models::{user::UserId, group::GroupId};
 
 pub type PaymentId = u64;
+
+fn now_ms() -> u64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64
+}
 
 #[derive(Debug, Clone)]
 pub struct Payment {
@@ -9,6 +14,7 @@ pub struct Payment {
     to_id: UserId,
     amount: f64,
     group_id: Option<GroupId>,
+    created_at: u64,
 }
 
 impl Payment {
@@ -19,19 +25,38 @@ impl Payment {
         amount: f64,
         group_id: Option<GroupId>,
     ) -> Result<Self, String> {
+        Self::with_timestamp(id, from_id, to_id, amount, group_id, now_ms())
+    }
+
+    pub fn with_timestamp(
+        id: PaymentId,
+        from_id: UserId,
+        to_id: UserId,
+        amount: f64,
+        group_id: Option<GroupId>,
+        created_at: u64,
+    ) -> Result<Self, String> {
         if amount <= 0.0 {
             return Err("Payment amount must be positive".to_string());
         }
         if from_id == to_id {
-            return Err("Sender and recipient must be different".to_string());
+            return Err("Sender and recipient cannot be the same".to_string());
         }
-        Ok(Self { id, from_id, to_id, amount, group_id })
+        Ok(Self {
+            id,
+            from_id,
+            to_id,
+            amount,
+            group_id,
+            created_at,
+        })
     }
 
     pub fn from_id(&self) -> UserId { self.from_id }
     pub fn to_id(&self) -> UserId { self.to_id }
     pub fn amount(&self) -> f64 { self.amount }
     pub fn group_id(&self) -> Option<GroupId> { self.group_id }
+    pub fn created_at(&self) -> u64 { self.created_at }
 
     pub fn update_amount(&mut self, new_amount: f64) -> Result<(), String> {
         if new_amount <= 0.0 {
@@ -67,6 +92,7 @@ mod tests {
         assert_eq!(p.amount(), 30.0);
         assert_eq!(p.group_id(), Some(5));
         assert!(p.is_group_payment());
+        assert!(p.created_at() > 0);
     }
 
     #[test]
@@ -106,7 +132,7 @@ mod tests {
         let mut p = Payment::new(1, 10, 20, 30.0, None).unwrap();
         let result = p.update_amount(-1.0);
         assert!(result.is_err());
-        assert_eq!(p.amount(), 30.0); // unchanged
+        assert_eq!(p.amount(), 30.0); 
     }
 
     #[test]

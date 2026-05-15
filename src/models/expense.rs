@@ -1,3 +1,4 @@
+use std::time::{SystemTime, UNIX_EPOCH};
 use crate::models::{
     user::UserId,
     group::GroupId,
@@ -5,6 +6,10 @@ use crate::models::{
 use crate::services::split::Split;
 
 pub type ExpenseId = u64;
+
+fn now_ms() -> u64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64
+}
 
 #[derive(Debug, Clone)]
 pub struct Expense {
@@ -14,10 +19,30 @@ pub struct Expense {
     paid_by: UserId,
     group_id: Option<GroupId>, 
     splits: Split,
+    created_at: u64,
 }
 
 impl Expense {
-    pub fn new(id: ExpenseId, description: &str, amount: f64, paid_by: UserId, group_id: Option<GroupId>, splits: Split) -> Self {
+    pub fn new(
+        id: ExpenseId,
+        description: &str,
+        amount: f64,
+        paid_by: UserId,
+        group_id: Option<GroupId>,
+        splits: Split,
+    ) -> Self {
+        Self::with_timestamp(id, description, amount, paid_by, group_id, splits, now_ms())
+    }
+
+    pub fn with_timestamp(
+        id: ExpenseId,
+        description: &str,
+        amount: f64,
+        paid_by: UserId,
+        group_id: Option<GroupId>,
+        splits: Split,
+        created_at: u64,
+    ) -> Self {
         Self {
             id,
             description: description.to_string(),
@@ -25,7 +50,12 @@ impl Expense {
             paid_by,
             group_id,
             splits,
+            created_at,
         }
+    }
+
+    pub fn created_at(&self) -> u64 {
+        self.created_at
     }
 
     pub fn paid_by(&self) -> UserId {
