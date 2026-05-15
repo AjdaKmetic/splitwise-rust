@@ -424,6 +424,7 @@
       font-weight: 300;
       border: 4px solid var(--bg);
       padding: 0;
+      padding-bottom: 4px;
       min-height: 0;
       z-index: 90;
       display: flex;
@@ -1128,7 +1129,16 @@
       }
       filteredGroups.sort((a, b) => a.name.localeCompare(b.name));
 
-      $('groups-list').innerHTML = filteredGroups.length ? filteredGroups.map(g => `<li
+      $('groups-list').innerHTML = filteredGroups.length ? filteredGroups.map(g => {
+        const myBal = g.my_balance || 0;
+        let rightHtml;
+        if (currentUserData) {
+          const cls = myBal > 0.01 ? 'positive' : myBal < -0.01 ? 'negative' : 'zero';
+          rightHtml = `<span class="balance ${cls}">${fmt(myBal)}</span>`;
+        } else {
+          rightHtml = `<span class="chevron">›</span>`;
+        }
+        return `<li
         class="group-row"
         data-group-id="${g.id}"
         data-group-name="${g.name}"
@@ -1140,8 +1150,8 @@
           <div class="friend-name">${g.name}</div>
           <div class="group-meta">${g.members.join(', ')} · ${g.expense_count} expense${g.expense_count === 1 ? '' : 's'}</div>
         </div>
-        <span class="chevron">›</span>
-      </li>`).join('') : `<li class="empty">${groupsEmptyMsg}</li>`;
+        ${rightHtml}
+      </li>`}).join('') : `<li class="empty">${groupsEmptyMsg}</li>`;
 
       // Group creation members
       const allForGroup = getAllUsers();
@@ -1163,18 +1173,11 @@
           return renderPaymentItem(item);
         }
         const payer = nameOrYou(item.paid_by, item.paid_by_id);
-        const partChips = item.participants.map((p, i) => {
-          const pid = item.participant_ids[i];
-          const text = nameOrYou(p, pid);
-          const cls = isMe(pid) ? 'chip me' : 'chip';
-          return `<span class="${cls}">${text}</span>`;
-        }).join('');
         return `<li class="expense-item" data-expense-id="${item.id}">
           ${avatarHtml(item.paid_by_id, item.paid_by)}
           <div style="flex: 1; min-width: 0;">
             <div style="font-weight: 600; font-size: 15px;">${item.description} <span style="font-weight: 400; color: var(--text-soft);">— ${fmt(item.amount)}</span></div>
             <div class="expense-meta">${formatTime(item.created_at)} · Paid by ${payer}${item.group_name ? ` · <span class="chip group">${item.group_name}</span>` : ''}</div>
-            <div>${partChips}</div>
           </div>
           <span class="chevron">›</span>
         </li>`;
