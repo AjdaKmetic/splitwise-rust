@@ -1,12 +1,14 @@
-use std::collections::HashMap;
 use std::cmp::Ordering;
+use crate::services::{
+    balance::Balance,
+};
 
 use crate::models::debt::{Debt};
 use crate::models::user::UserId;
 
 const EPSILON: f64 = 0.01;
 
-pub fn simplify_debts(balances: &HashMap<UserId, f64>) -> Vec<Debt> {
+pub fn simplify_debts(balances: &Balance) -> Vec<Debt> {
     let mut transactions = Vec::new();
     let mut debtors_and_creditors: Vec<(UserId, f64)> = balances.iter()
         .filter(|&(_, &amount)| amount != 0.0)
@@ -53,14 +55,14 @@ mod tests {
 
     #[test]
     fn test_simplify_empty_balances() {
-        let balances = HashMap::new();
+        let balances = Balance::new();
         let debts = simplify_debts(&balances);
         assert!(debts.is_empty());
     }
 
     #[test]
     fn test_simplify_all_zero_balances() {
-        let mut balances = HashMap::new();
+        let mut balances = Balance::new();
         balances.insert(1, 0.0);
         balances.insert(2, 0.0);
         let debts = simplify_debts(&balances);
@@ -69,7 +71,7 @@ mod tests {
 
     #[test]
     fn test_simplify_two_users() {
-        let mut balances = HashMap::new();
+        let mut balances = Balance::new();
         balances.insert(1, 50.0);
         balances.insert(2, -50.0);
         let debts = simplify_debts(&balances);
@@ -81,7 +83,7 @@ mod tests {
 
     #[test]
     fn test_simplify_one_creditor_two_debtors() {
-        let mut balances = HashMap::new();
+        let mut balances = Balance::new();
         balances.insert(1, 100.0);
         balances.insert(2, -30.0);
         balances.insert(3, -70.0);
@@ -97,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_simplify_eliminates_chains() {
-        let mut balances = HashMap::new();
+        let mut balances = Balance::new();
         balances.insert(1, 50.0);
         balances.insert(2, 0.0);
         balances.insert(3, -50.0);
@@ -110,7 +112,7 @@ mod tests {
 
     #[test]
     fn test_simplify_at_most_n_minus_one_debts() {
-        let mut balances = HashMap::new();
+        let mut balances = Balance::new();
         balances.insert(1, 100.0);
         balances.insert(2, -30.0);
         balances.insert(3, -20.0);
@@ -121,7 +123,7 @@ mod tests {
 
     #[test]
     fn test_simplify_matched_amounts() {
-        let mut balances = HashMap::new();
+        let mut balances = Balance::new();
         balances.insert(1, 50.0);
         balances.insert(2, -50.0);
         balances.insert(3, 50.0);
@@ -134,7 +136,7 @@ mod tests {
 
     #[test]
     fn test_simplify_preserves_total_amount() {
-        let mut balances = HashMap::new();
+        let mut balances = Balance::new();
         balances.insert(1, 100.0);
         balances.insert(2, -30.0);
         balances.insert(3, -20.0);
@@ -146,7 +148,7 @@ mod tests {
 
     #[test]
     fn test_simplify_handles_small_amounts() {
-        let mut balances = HashMap::new();
+        let mut balances = Balance::new();
         balances.insert(1, 0.005);
         balances.insert(2, -0.005);
         let debts = simplify_debts(&balances);

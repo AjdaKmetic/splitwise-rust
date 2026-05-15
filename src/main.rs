@@ -31,7 +31,7 @@ fn main() {
         ),
     ];
 
-    let balances = settlemate_rust::services::balance::calculate_balances(&expenses);
+    let balances = settlemate_rust::services::balance::Balance::calculate_balances(&expenses);
     println!("Balances: {:?}", balances);
 
     let transactions = settlemate_rust::services::simplify::simplify_debts(&balances);
