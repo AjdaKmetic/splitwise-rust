@@ -11,7 +11,7 @@ use settlemate_rust::{
         user::User,
     },
     services::{
-        balance::Balance,
+        balance::{balances_with_payments, pairwise_balances, pair_debt_in_context},
         simplify::simplify_debts,
         split::Split,
     },
