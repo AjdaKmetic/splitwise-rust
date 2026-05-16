@@ -27,10 +27,6 @@
       --amber-bg: #FAEEDA;
       --amber-text: #854F0B;
 
-      --lavender: #C5B3E6;
-      --pink: #F4C0D1;
-      --pink-text: #72243E;
-
       --neutral-bg: #F1EDE4;
       --neutral-text: #5F5E5A;
 
@@ -90,7 +86,7 @@
 
     .card.flush { padding: 8px 0; }
 
-    /* Hero balance card on Friends view */
+    /* Hero balance card on friends screen */
     .hero-balance {
       border-radius: var(--radius-xl);
       padding: 20px;
@@ -441,7 +437,6 @@
     }
     .detail-header h1 { margin: 0; }
 
-    /* Special: group list rows have richer content */
     ul.list li.group-row .friend-name { font-size: 16px; }
     ul.list li.group-row { padding: 12px; }
 
@@ -1681,7 +1676,6 @@
       openAddExpense('view-group-detail', currentGroupId);
     });
 
-    // ---- Activity + expense form ----
     $('expenses-list').addEventListener('click', (event) => {
       const li = event.target.closest('li[data-expense-id]');
       if (!li) return;
