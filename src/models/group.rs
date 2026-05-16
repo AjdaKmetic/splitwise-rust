@@ -72,7 +72,7 @@ mod tests {
     #[test]
     fn test_group_add_member() {
         let mut group = Group::new(1, "Amsterdam");
-        let user = User::new(1, "Janez Novak", "janeznovak@example.com");
+        let user = User::new(1, "Janez Novak", "janeznovak@example.com", "hashed_password");
         group.add_member(user.id);
         assert_eq!(group.member_count(), 1);
         assert!(group.contains_member(user.id));
@@ -89,7 +89,7 @@ mod tests {
     #[test]
     fn test_group_remove_member() {
         let mut group = Group::new(1, "Amsterdam");
-        let user = User::new(1, "Janez Novak", "janeznovak@example.com");
+        let user = User::new(1, "Janez Novak", "janeznovak@example.com", "hashed_password");
         let user_id = user.id;
         group.add_member(user_id);
         group.remove_member(user_id);
@@ -108,7 +108,7 @@ mod tests {
     #[test]
     fn test_group_contains_member() {
         let mut group = Group::new(1, "Amsterdam");
-        let user = User::new(1, "Janez Novak", "janeznovak@example.com");
+        let user = User::new(1, "Janez Novak", "janeznovak@example.com", "hashed_password");
         let user_id = user.id;
         group.add_member(user_id);
         assert!(group.contains_member(user_id));
@@ -118,8 +118,8 @@ mod tests {
     #[test]
     fn test_group_members() {
         let mut group = Group::new(1, "Amsterdam");
-        let user1 = User::new(1, "Janez Novak", "janeznovak@example.com");
-        let user2 = User::new(2, "Marija Novak", "marijanovak@example.com");
+        let user1 = User::new(1, "Janez Novak", "janeznovak@example.com", "hashed_password");
+        let user2 = User::new(2, "Marija Novak", "marijanovak@example.com", "hashed_password");
         group.add_member(user1.id);
         group.add_member(user2.id);
         assert_eq!(group.member_count(), 2);
@@ -129,8 +129,8 @@ mod tests {
     #[test]
     fn test_group_member_count() {
         let mut group = Group::new(1, "Amsterdam");
-        let user1 = User::new(1, "Janez Novak", "janeznovak@example.com");
-        let user2 = User::new(2, "Marija Novak", "marijanovak@example.com");
+        let user1 = User::new(1, "Janez Novak", "janeznovak@example.com", "hashed_password");
+        let user2 = User::new(2, "Marija Novak", "marijanovak@example.com", "hashed_password");
         group.add_member(user1.id);
         group.add_member(user2.id);
         assert_eq!(group.member_count(), 2);

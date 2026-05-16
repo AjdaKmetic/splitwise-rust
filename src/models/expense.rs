@@ -121,7 +121,7 @@ mod tests {
     use crate::models::user::User;
 
     fn test_user() -> User {
-        User::new(1, "Nika Novak", "nika.novak@example.com")
+        User::new(1, "Nika Novak", "nika.novak@example.com", "hashed_password")
     }
 
     #[test]

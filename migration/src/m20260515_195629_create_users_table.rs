@@ -14,8 +14,14 @@ impl MigrationTrait for Migration {
                     .table(Users::Table)
                     .if_not_exists()
                     .col(pk_auto(Users::Id))
-                    .col(string(Users::Name))
-                    .col(string(Users::Email))
+                    .col(string(Users::Name).not_null())
+                    .col(string(Users::Email).not_null().unique_key())
+                    .col(string(Users::PasswordHash).not_null())
+                    .col(
+                        timestamp(Users::CreatedAt)
+                            .not_null()
+                            .default(Expr::current_timestamp()),
+                    )
                     .to_owned(),
             )
             .await
@@ -25,7 +31,10 @@ impl MigrationTrait for Migration {
         // Replace the sample below with your own migration scripts
 
         manager
-            .drop_table(Table::drop().table(Users::Table).to_owned())
+            .drop_table(
+                Table::drop()
+                    .table(Users::Table)
+                    .to_owned())
             .await
     }
 }
@@ -36,4 +45,6 @@ enum Users {
     Id,
     Name,
     Email,
+    PasswordHash,
+    CreatedAt,
 }

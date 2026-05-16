@@ -76,6 +76,7 @@ async fn main() {
         &db,
         "Janez Novak",
         "janez@example.com",
+        "janez123"
     )
     .await
     .expect("Dodajanje uporabnika ni uspelo");
