@@ -11,7 +11,7 @@ use settlemate_rust::{
         user::User,
     },
     services::{
-        balance::{balances_with_payments, pairwise_balances, pair_debt_in_context},
+        balance::Balance,
         simplify::simplify_debts,
         split::Split,
     },
@@ -146,7 +146,7 @@ fn list_friends(state: State<AppState>) -> Vec<FriendDto> {
     let data = state.0.lock().unwrap();
     match data.current_user_id {
         Some(my_id) => {
-            let pairwise = pairwise_balances(&data.expenses, &data.payments, my_id);
+            let pairwise = Balance::pairwise_balances(&data.expenses, &data.payments, my_id);
             data.users.iter()
                 .filter(|u| u.id != my_id)
                 .map(|u| FriendDto {
@@ -157,7 +157,7 @@ fn list_friends(state: State<AppState>) -> Vec<FriendDto> {
                 .collect()
         }
         None => {
-            let balances = balances_with_payments(&data.expenses, &data.payments);
+            let balances = Balance::balances_with_payments(&data.expenses, &data.payments);
             data.users.iter()
                 .map(|u| FriendDto {
                     id: u.id,
@@ -187,10 +187,10 @@ fn list_expenses_for_friend(friend_id: u64, state: State<AppState>) -> Vec<Expen
 #[tauri::command]
 fn friend_breakdown(friend_id: u64, state: State<AppState>) -> Vec<BalanceDto> {
     let data = state.0.lock().unwrap();
-    let breakdown = pairwise_balances(&data.expenses, &data.payments, friend_id);
-    breakdown.into_iter()
+    let breakdown = Balance::pairwise_balances(&data.expenses, &data.payments, friend_id);
+    breakdown.iter()
         .filter(|(_, amt)| amt.abs() > 0.005)
-        .map(|(id, amount)| BalanceDto { user_id: id, name: name_of(&data, id), amount })
+        .map(|(&id, &amount)| BalanceDto { user_id: id, name: name_of(&data, id), amount })
         .collect()
 }
 
@@ -224,7 +224,7 @@ fn list_groups(state: State<AppState>) -> Vec<GroupDto> {
             .filter(|p| p.group_id() == Some(g.id))
             .cloned()
             .collect();
-        let balances = balances_with_payments(&group_expenses, &group_payments);
+        let balances = Balance::balances_with_payments(&group_expenses, &group_payments);
         let has_outstanding = balances.values().any(|&v| v.abs() > 0.01);
         let my_balance = match data.current_user_id {
             Some(my_id) => balances.get(&my_id).copied().unwrap_or(0.0),
@@ -255,7 +255,7 @@ fn group_balances(group_id: u64, state: State<AppState>) -> Vec<BalanceDto> {
         .filter(|p| p.group_id() == Some(group_id))
         .cloned()
         .collect();
-    let balances = balances_with_payments(&group_expenses, &group_payments);
+    let balances = Balance::balances_with_payments(&group_expenses, &group_payments);
     let member_ids: Vec<u64> = data.groups.iter()
         .find(|g| g.id == group_id)
         .map(|g| g.members().to_vec())
@@ -282,7 +282,7 @@ fn simplify_group(group_id: u64, state: State<AppState>) -> Vec<SettlementDto> {
         .filter(|p| p.group_id() == Some(group_id))
         .cloned()
         .collect();
-    let balances = balances_with_payments(&group_expenses, &group_payments);
+    let balances = Balance::balances_with_payments(&group_expenses, &group_payments);
     simplify_debts(&balances).iter().map(|d| SettlementDto {
         from: name_of(&data, d.from()),
         to: name_of(&data, d.to()),
@@ -434,12 +434,12 @@ fn record_payment(
 
         let mut contexts: Vec<(Option<u64>, f64)> = Vec::new();
 
-        let untagged_debt = pair_debt_in_context(&data.expenses, &data.payments, from_id, to_id, None);
+        let untagged_debt = Balance::pair_debt_in_context(&data.expenses, &data.payments, from_id, to_id, None);
         if untagged_debt > 0.0 {
             contexts.push((None, untagged_debt));
         }
         for gid in pair_groups {
-            let debt = pair_debt_in_context(&data.expenses, &data.payments, from_id, to_id, Some(gid));
+            let debt = Balance::pair_debt_in_context(&data.expenses, &data.payments, from_id, to_id, Some(gid));
             if debt > 0.0 {
                 contexts.push((Some(gid), debt));
             }
@@ -531,7 +531,7 @@ fn list_payments_for_group(group_id: u64, state: State<AppState>) -> Vec<Payment
 #[tauri::command]
 fn get_balances(state: State<AppState>) -> Vec<BalanceDto> {
     let data = state.0.lock().unwrap();
-    let balances = balances_with_payments(&data.expenses, &data.payments);
+    let balances = Balance::balances_with_payments(&data.expenses, &data.payments);
     let mut result: Vec<BalanceDto> = data.users.iter().map(|u| BalanceDto {
         user_id: u.id,
         name: u.name().to_string(),
@@ -544,7 +544,7 @@ fn get_balances(state: State<AppState>) -> Vec<BalanceDto> {
 #[tauri::command]
 fn simplify(state: State<AppState>) -> Vec<SettlementDto> {
     let data = state.0.lock().unwrap();
-    let balances = balances_with_payments(&data.expenses, &data.payments);
+    let balances = Balance::balances_with_payments(&data.expenses, &data.payments);
     simplify_debts(&balances).iter().map(|d| SettlementDto {
         from: name_of(&data, d.from()),
         to: name_of(&data, d.to()),
@@ -561,7 +561,7 @@ fn get_current_user(state: State<AppState>) -> Option<FriendDto> {
     data.users.iter()
         .find(|u| u.id == my_id)
         .map(|u| {
-            let pairwise = pairwise_balances(&data.expenses, &data.payments, my_id);
+            let pairwise = Balance::pairwise_balances(&data.expenses, &data.payments, my_id);
             let total: f64 = pairwise.values().sum();
             FriendDto {
                 id: u.id,
